@@ -1,0 +1,16 @@
+{
+	"name": "nadeuli",
+	"private": true,
+	"workspaces": [
+		"frontend",
+		"backend",
+		"shared"
+	],
+	"scripts": {
+		"dev:fe": "yarn workspace frontend dev",
+		"dev:be": "yarn workspace backend dev",
+		"build": "yarn workspace shared build && yarn workspace backend build && yarn workspace frontend build",
+		"check": "npx @biomejs/biome check ."
+	},
+	"packageManager": "yarn@1.22.22"
+}

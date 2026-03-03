@@ -1,0 +1,12 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"noEmit": true,
+		"baseUrl": ".",
+		"paths": {
+			"shared": ["../shared/dist/types.d.ts"]
+		}
+	},
+	"include": ["src"]
+}

@@ -1,0 +1,29 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.5/schema.json",
+	"files": {
+		"includes": ["backend/src/**", "frontend/src/**", "shared/src/**", "*.json"]
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"suspicious": {
+				"noExplicitAny": "error"
+			},
+			"style": {
+				"noNonNullAssertion": "error"
+			}
+		}
+	},
+	"formatter": {
+		"indentStyle": "tab",
+		"lineWidth": 100
+	}
+}

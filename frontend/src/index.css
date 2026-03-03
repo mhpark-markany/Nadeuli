@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+	--color-score-optimal: #22c55e;
+	--color-score-good: #84cc16;
+	--color-score-moderate: #eab308;
+	--color-score-caution: #f97316;
+	--color-score-danger: #ef4444;
+
+	--color-cai-good: #00c73c;
+	--color-cai-moderate: #fd9b5a;
+	--color-cai-bad: #ff5a5a;
+	--color-cai-very-bad: #b80000;
+}
+
+body {
+	font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+	background: #f8fafc;
+	color: #1e293b;
+}
