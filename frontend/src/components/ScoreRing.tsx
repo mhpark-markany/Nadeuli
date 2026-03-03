@@ -9,7 +9,7 @@ export function ScoreRing({ score }: { score: OutdoorScore }) {
 	return (
 		<div className="flex flex-col items-center gap-2">
 			<svg width="140" height="140" viewBox="0 0 120 120" aria-label={`적합도 ${score.total}점`}>
-				<circle cx="60" cy="60" r="54" fill="none" stroke="#e2e8f0" strokeWidth="8" />
+				<circle cx="60" cy="60" r="54" fill="none" stroke="var(--border-default)" strokeWidth="8" />
 				<circle
 					cx="60"
 					cy="60"
@@ -25,7 +25,7 @@ export function ScoreRing({ score }: { score: OutdoorScore }) {
 				<text x="60" y="55" textAnchor="middle" className="text-3xl font-bold" fill={color}>
 					{score.total}
 				</text>
-				<text x="60" y="72" textAnchor="middle" className="text-xs" fill="#94a3b8">
+				<text x="60" y="72" textAnchor="middle" className="text-xs" fill="var(--text-muted)">
 					/100
 				</text>
 			</svg>
@@ -33,12 +33,12 @@ export function ScoreRing({ score }: { score: OutdoorScore }) {
 				{score.grade}
 			</span>
 			{score.wbgtOverride && (
-				<span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">
+				<span className="rounded-full bg-red-500/10 px-2 py-0.5 text-xs text-(--color-error)">
 					🌡️ 열 스트레스 경고
 				</span>
 			)}
 			{score.healthBlockActive && (
-				<span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-700">
+				<span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-xs text-orange-500">
 					⚠️ 보건 가이드라인 차단
 				</span>
 			)}

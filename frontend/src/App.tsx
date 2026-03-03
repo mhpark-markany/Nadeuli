@@ -8,10 +8,12 @@ import { PlaceCard } from "./components/PlaceCard";
 import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
 import { useGeolocation } from "./hooks/useGeolocation";
+import { useTheme } from "./hooks/useTheme";
 import { fetchDashboard, fetchFestivals, fetchPlaces } from "./lib/api";
 
 export function App() {
 	const geo = useGeolocation();
+	const { theme, setTheme } = useTheme();
 	const [data, setData] = useState<DashboardData | null>(null);
 	const [places, setPlaces] = useState<Place[]>([]);
 	const [festivals, setFestivals] = useState<Festival[]>([]);
@@ -48,28 +50,39 @@ export function App() {
 			{/* 헤더 */}
 			<header className="mb-6 flex items-center justify-between">
 				<h1 className="text-xl font-bold">🌤️ 나들이</h1>
-				{geo.lat != null && (
-					<span className="text-sm text-slate-400">
-						📍 {geo.lat.toFixed(2)}, {geo.lng?.toFixed(2)}
-					</span>
-				)}
+				<div className="flex items-center gap-3">
+					{geo.lat != null && (
+						<span className="text-sm text-(--text-muted)">
+							📍 {geo.lat.toFixed(2)}, {geo.lng?.toFixed(2)}
+						</span>
+					)}
+					<select
+						value={theme}
+						onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
+						className="rounded-lg bg-(--bg-muted) px-2 py-1 text-sm text-(--text-secondary)"
+					>
+						<option value="system">🖥️ 시스템</option>
+						<option value="light">☀️ 라이트</option>
+						<option value="dark">🌙 다크</option>
+					</select>
+				</div>
 			</header>
 
 			{/* 로딩/에러 상태 */}
 			{(geo.loading || loading) && (
 				<div className="flex items-center justify-center py-20">
-					<div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-500" />
+					<div className="h-8 w-8 animate-spin rounded-full border-4 border-(--border-default) border-t-(--color-brand)" />
 				</div>
 			)}
 
 			{geo.error && (
-				<div className="rounded-xl bg-red-50 p-4 text-center text-sm text-red-600">
+				<div className="rounded-xl bg-red-500/10 p-4 text-center text-sm text-(--color-error)">
 					<p>위치 정보를 가져올 수 없습니다</p>
-					<p className="mt-1 text-xs text-red-400">{geo.error}</p>
+					<p className="mt-1 text-xs opacity-70">{geo.error}</p>
 					<button
 						type="button"
 						onClick={geo.retry}
-						className="mt-2 rounded-lg bg-red-100 px-3 py-1 text-xs font-medium text-red-700"
+						className="mt-2 rounded-lg bg-red-500/20 px-3 py-1 text-xs font-medium"
 					>
 						다시 시도
 					</button>
@@ -77,7 +90,7 @@ export function App() {
 			)}
 
 			{error && !geo.error && (
-				<div className="rounded-xl bg-yellow-50 p-4 text-center text-sm text-yellow-700">
+				<div className="rounded-xl bg-yellow-500/10 p-4 text-center text-sm text-(--color-warning)">
 					{error}
 				</div>
 			)}
@@ -86,8 +99,10 @@ export function App() {
 			{data && !loading && (
 				<div className="space-y-4">
 					{/* 적합도 점수 */}
-					<div className="rounded-2xl bg-white p-6 shadow-sm">
-						<h2 className="mb-4 text-center text-sm font-medium text-slate-500">야외활동 적합도</h2>
+					<div className="rounded-2xl bg-(--bg-card) p-6 shadow-sm">
+						<h2 className="mb-4 text-center text-sm font-medium text-(--text-secondary)">
+							야외활동 적합도
+						</h2>
 						<ScoreRing score={data.score} />
 					</div>
 
@@ -102,8 +117,8 @@ export function App() {
 
 					{/* 추천 장소 */}
 					{places.length > 0 && (
-						<div className="rounded-2xl bg-white p-5 shadow-sm">
-							<h3 className="mb-3 text-sm font-medium text-slate-500">📍 추천 장소</h3>
+						<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
+							<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">📍 추천 장소</h3>
 							<div className="flex gap-3 overflow-x-auto pb-2">
 								{places.slice(0, 6).map((p) => (
 									<PlaceCard key={p.contentId} place={p} />
@@ -114,8 +129,8 @@ export function App() {
 
 					{/* 주변 행사 */}
 					{festivals.length > 0 && (
-						<div className="rounded-2xl bg-white p-5 shadow-sm">
-							<h3 className="mb-3 text-sm font-medium text-slate-500">🎪 주변 행사</h3>
+						<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
+							<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">🎪 주변 행사</h3>
 							<div className="space-y-2">
 								{festivals.slice(0, 4).map((f) => (
 									<FestivalCard key={f.id} festival={f} />

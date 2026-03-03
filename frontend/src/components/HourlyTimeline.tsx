@@ -23,8 +23,8 @@ export function HourlyTimeline({ hours }: { hours: HourlyScore[] }) {
 	const gradientPath = `${linePath} L${points[points.length - 1].x},${PADDING_TOP + CHART_H} L${points[0].x},${PADDING_TOP + CHART_H} Z`;
 
 	return (
-		<div className="rounded-2xl bg-white p-5 shadow-sm">
-			<h3 className="mb-3 text-sm font-medium text-slate-500">시간대별 전망</h3>
+		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
+			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">시간대별 전망</h3>
 			<div className="overflow-x-auto">
 				<svg
 					width={svgW}
@@ -35,8 +35,8 @@ export function HourlyTimeline({ hours }: { hours: HourlyScore[] }) {
 				>
 					<defs>
 						<linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-							<stop offset="0%" stopColor="#3b82f6" stopOpacity={0.2} />
-							<stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+							<stop offset="0%" stopColor="var(--color-brand)" stopOpacity={0.2} />
+							<stop offset="100%" stopColor="var(--color-brand)" stopOpacity={0} />
 						</linearGradient>
 					</defs>
 
@@ -44,7 +44,13 @@ export function HourlyTimeline({ hours }: { hours: HourlyScore[] }) {
 					<path d={gradientPath} fill="url(#areaFill)" />
 
 					{/* 라인 */}
-					<path d={linePath} fill="none" stroke="#3b82f6" strokeWidth={2} strokeLinejoin="round" />
+					<path
+						d={linePath}
+						fill="none"
+						stroke="var(--color-brand)"
+						strokeWidth={2}
+						strokeLinejoin="round"
+					/>
 
 					{/* 포인트 + 라벨 */}
 					{points.map((p) => (
@@ -54,14 +60,15 @@ export function HourlyTimeline({ hours }: { hours: HourlyScore[] }) {
 								cy={p.y}
 								r={4}
 								fill={gradeColor(p.grade)}
-								stroke="white"
+								stroke="var(--bg-card)"
 								strokeWidth={2}
 							/>
 							<text
 								x={p.x}
 								y={p.y - 10}
 								textAnchor="middle"
-								className="fill-slate-700 text-[11px] font-medium"
+								className="text-[11px] font-medium"
+								fill="var(--text-primary)"
 							>
 								{p.score}
 							</text>
@@ -69,7 +76,8 @@ export function HourlyTimeline({ hours }: { hours: HourlyScore[] }) {
 								x={p.x}
 								y={PADDING_TOP + CHART_H + 20}
 								textAnchor="middle"
-								className="fill-slate-400 text-[11px]"
+								className="text-[11px]"
+								fill="var(--text-muted)"
 							>
 								{String(p.hour).padStart(2, "0")}시
 							</text>

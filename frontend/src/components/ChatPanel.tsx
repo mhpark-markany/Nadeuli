@@ -55,15 +55,15 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 	};
 
 	return (
-		<div className="rounded-2xl bg-white shadow-sm">
-			<div className="border-b px-5 py-3">
-				<h3 className="text-sm font-medium text-slate-500">💬 AI에게 물어보기</h3>
+		<div className="rounded-2xl bg-(--bg-card) shadow-sm">
+			<div className="border-b border-(--border-default) px-5 py-3">
+				<h3 className="text-sm font-medium text-(--text-secondary)">💬 AI에게 물어보기</h3>
 			</div>
 
 			{/* 메시지 영역 */}
 			<div ref={scrollRef} className="max-h-80 space-y-3 overflow-y-auto px-5 py-4">
 				{messages.length === 0 && (
-					<p className="text-center text-xs text-slate-300">
+					<p className="text-center text-xs text-(--text-muted)">
 						"오늘 아이랑 공원 가도 될까?" 같은 질문을 해보세요
 					</p>
 				)}
@@ -71,11 +71,11 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 				{messages.map((msg) => (
 					<div key={msg.id} className={msg.role === "user" ? "text-right" : ""}>
 						{msg.role === "user" ? (
-							<span className="inline-block rounded-2xl bg-blue-500 px-4 py-2 text-sm text-white">
+							<span className="inline-block rounded-2xl bg-(--color-brand) px-4 py-2 text-sm text-white">
 								{msg.content}
 							</span>
 						) : (
-							<div className="space-y-2 text-sm text-slate-700">
+							<div className="space-y-2 text-sm text-(--text-primary)">
 								<p>{msg.content}</p>
 								{msg.recommendation && <RecommendationCard rec={msg.recommendation} />}
 							</div>
@@ -84,15 +84,15 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 				))}
 
 				{loading && (
-					<div className="flex items-center gap-2 text-xs text-slate-400">
-						<div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-blue-500" />
+					<div className="flex items-center gap-2 text-xs text-(--text-muted)">
+						<div className="h-4 w-4 animate-spin rounded-full border-2 border-(--border-default) border-t-(--color-brand)" />
 						생각 중...
 					</div>
 				)}
 			</div>
 
 			{/* 입력 */}
-			<div className="flex gap-2 border-t px-4 py-3">
+			<div className="flex gap-2 border-t border-(--border-default) px-4 py-3">
 				<input
 					type="text"
 					value={input}
@@ -101,14 +101,14 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 						if (e.key === "Enter" && !e.nativeEvent.isComposing) send();
 					}}
 					placeholder="질문을 입력하세요..."
-					className="flex-1 rounded-xl bg-slate-50 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+					className="flex-1 rounded-xl bg-(--bg-muted) px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-(--color-brand)/30"
 					disabled={loading}
 				/>
 				<button
 					type="button"
 					onClick={send}
 					disabled={loading || !input.trim()}
-					className="rounded-xl bg-blue-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+					className="rounded-xl bg-(--color-brand) px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
 				>
 					전송
 				</button>
@@ -119,9 +119,9 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 
 function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 	return (
-		<div className="space-y-2 rounded-xl bg-slate-50 p-3 text-xs">
+		<div className="space-y-2 rounded-xl bg-(--bg-muted) p-3 text-xs">
 			{/* 추천 시간 */}
-			<p className="text-slate-500">
+			<p className="text-(--text-secondary)">
 				⏰ 추천 시간: {rec.bestTimeSlot.start}~{rec.bestTimeSlot.end} — {rec.bestTimeSlot.reason}
 			</p>
 
@@ -131,7 +131,7 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 					{rec.activities.map((a) => (
 						<span
 							key={a.name}
-							className={`rounded-lg px-2 py-1 ${a.type === "outdoor" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}
+							className={`rounded-lg px-2 py-1 ${a.type === "outdoor" ? "bg-green-500/10 text-(--color-success)" : "bg-(--color-brand)/10 text-(--color-brand)"}`}
 						>
 							{a.type === "outdoor" ? "🌳" : "🏢"} {a.name}
 						</span>
@@ -141,7 +141,7 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 
 			{/* 주의사항 */}
 			{rec.cautions.length > 0 && (
-				<ul className="list-inside list-disc text-slate-500">
+				<ul className="list-inside list-disc text-(--text-secondary)">
 					{rec.cautions.map((c) => (
 						<li key={c}>{c}</li>
 					))}
@@ -150,7 +150,9 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 
 			{/* 보건 경고 */}
 			{rec.healthWarning && (
-				<p className="rounded-lg bg-red-50 px-2 py-1 text-red-600">⚠️ {rec.healthWarning}</p>
+				<p className="rounded-lg bg-red-500/10 px-2 py-1 text-(--color-error)">
+					⚠️ {rec.healthWarning}
+				</p>
 			)}
 		</div>
 	);

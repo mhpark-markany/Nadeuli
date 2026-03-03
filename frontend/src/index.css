@@ -1,20 +1,47 @@
 @import "tailwindcss";
 
 :root {
+	color-scheme: light dark;
+
+	/* 배경 */
+	--bg-base: light-dark(#f8fafc, #0f172a);
+	--bg-card: light-dark(#ffffff, #1e293b);
+	--bg-muted: light-dark(#f1f5f9, #334155);
+
+	/* 텍스트 */
+	--text-primary: light-dark(#1e293b, #f1f5f9);
+	--text-secondary: light-dark(#64748b, #94a3b8);
+	--text-muted: light-dark(#94a3b8, #64748b);
+
+	/* 보더 */
+	--border-default: light-dark(#e2e8f0, #334155);
+
+	/* 점수 */
 	--color-score-optimal: #22c55e;
 	--color-score-good: #84cc16;
 	--color-score-moderate: #eab308;
 	--color-score-caution: #f97316;
 	--color-score-danger: #ef4444;
 
+	/* 대기질 */
 	--color-cai-good: #00c73c;
 	--color-cai-moderate: #fd9b5a;
 	--color-cai-bad: #ff5a5a;
 	--color-cai-very-bad: #b80000;
+
+	/* 상태 */
+	--color-success: #22c55e;
+	--color-warning: #f59e0b;
+	--color-error: #ef4444;
+	--color-info: #3b82f6;
+
+	/* 브랜드 */
+	--color-brand: #3b82f6;
+	--color-brand-light: light-dark(#dbeafe, #1e3a5f);
 }
 
 body {
 	font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-	background: #f8fafc;
-	color: #1e293b;
+	background: var(--bg-base);
+	color: var(--text-primary);
 }
