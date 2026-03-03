@@ -1,6 +1,6 @@
 FROM node:22-slim AS build
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock tsconfig.json ./
 COPY shared/package.json shared/
 COPY backend/package.json backend/
 COPY frontend/package.json frontend/
