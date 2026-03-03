@@ -1,4 +1,10 @@
-const requiredKeys = ["AIRKOREA_API_KEY", "KMA_API_KEY", "TOUR_API_KEY", "GEMINI_API_KEY"] as const;
+const requiredKeys = [
+	"AIRKOREA_API_KEY",
+	"KMA_API_KEY",
+	"TOUR_API_KEY",
+	"GEMINI_API_KEY",
+	"KAKAO_REST_API_KEY",
+] as const;
 
 type EnvKey = (typeof requiredKeys)[number];
 
@@ -19,6 +25,7 @@ function loadEnv(): Record<EnvKey, string> & {
 		KMA_API_KEY: process.env.KMA_API_KEY ?? "",
 		TOUR_API_KEY: process.env.TOUR_API_KEY ?? "",
 		GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
+		KAKAO_REST_API_KEY: process.env.KAKAO_REST_API_KEY ?? "",
 		REDIS_URL: process.env.REDIS_URL ?? "redis://localhost:6379",
 		PORT: Number(process.env.PORT ?? "3000"),
 		CORS_ORIGIN: process.env.CORS_ORIGIN ?? "*",

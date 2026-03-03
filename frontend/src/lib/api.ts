@@ -55,3 +55,14 @@ export async function askAI(question: string, lat: number, lng: number): Promise
 	}
 	return json.data;
 }
+
+export interface GeocodedAddress {
+	address: string;
+	sido: string;
+	sigungu: string;
+	dong: string;
+}
+
+export async function fetchAddress(lat: number, lng: number): Promise<GeocodedAddress> {
+	return fetchJson<GeocodedAddress>(`${BASE}/geocode?lat=${lat}&lng=${lng}`);
+}

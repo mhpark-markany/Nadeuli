@@ -9,7 +9,7 @@ import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
 import { useGeolocation } from "./hooks/useGeolocation";
 import { useTheme } from "./hooks/useTheme";
-import { fetchDashboard, fetchFestivals, fetchPlaces } from "./lib/api";
+import { fetchAddress, fetchDashboard, fetchFestivals, fetchPlaces } from "./lib/api";
 
 export function App() {
 	const geo = useGeolocation();
@@ -17,6 +17,7 @@ export function App() {
 	const [data, setData] = useState<DashboardData | null>(null);
 	const [places, setPlaces] = useState<Place[]>([]);
 	const [festivals, setFestivals] = useState<Festival[]>([]);
+	const [address, setAddress] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 
@@ -24,14 +25,16 @@ export function App() {
 		setLoading(true);
 		setError(null);
 		try {
-			const [dashboard, placesData, festivalsData] = await Promise.all([
+			const [dashboard, placesData, festivalsData, addressData] = await Promise.all([
 				fetchDashboard(lat, lng),
 				fetchPlaces(lat, lng).catch(() => [] as Place[]),
 				fetchFestivals().catch(() => [] as Festival[]),
+				fetchAddress(lat, lng).catch(() => null),
 			]);
 			setData(dashboard);
 			setPlaces(placesData);
 			setFestivals(festivalsData);
+			setAddress(addressData?.dong ?? addressData?.sigungu ?? null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "데이터 로드 실패");
 		} finally {
@@ -51,11 +54,7 @@ export function App() {
 			<header className="mb-6 flex items-center justify-between">
 				<h1 className="text-xl font-bold">🌤️ 나들이</h1>
 				<div className="flex items-center gap-3">
-					{geo.lat != null && (
-						<span className="text-sm text-(--text-muted)">
-							📍 {geo.lat.toFixed(2)}, {geo.lng?.toFixed(2)}
-						</span>
-					)}
+					{address && <span className="text-sm text-(--text-muted)">📍 {address}</span>}
 					<select
 						value={theme}
 						onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}

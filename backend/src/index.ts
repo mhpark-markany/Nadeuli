@@ -5,6 +5,7 @@ import { env } from "./lib/env.js";
 import { airQualityRoute } from "./routes/air-quality.js";
 import { askRoute } from "./routes/ask.js";
 import { festivalsRoute } from "./routes/festivals.js";
+import { geocodeRoute } from "./routes/geocode.js";
 import { lifeIndexRoute } from "./routes/life-index.js";
 import { placesRoute } from "./routes/places.js";
 import { scoreRoute } from "./routes/score.js";
@@ -21,6 +22,7 @@ app.route("/api/score", scoreRoute);
 app.route("/api/places", placesRoute);
 app.route("/api/festivals", festivalsRoute);
 app.route("/api/ask", askRoute);
+app.route("/api/geocode", geocodeRoute);
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
