@@ -12,6 +12,7 @@ placesRoute.get("/", async (c) => {
 	const lng = Number(c.req.query("lng"));
 	const radius = Number(c.req.query("radius") || "5");
 	const type = (c.req.query("type") || "all") as PlaceType;
+	const page = Number(c.req.query("page") || "1");
 
 	if (!lat || !lng) {
 		return c.json<ApiResponse<never>>(
@@ -21,17 +22,13 @@ placesRoute.get("/", async (c) => {
 	}
 
 	try {
-		const cacheKey = `places:${lat.toFixed(2)}:${lng.toFixed(2)}:${radius}:${type}`;
+		const cacheKey = `places:${lat.toFixed(2)}:${lng.toFixed(2)}:${radius}:${type}:${page}`;
 		const cached = await cacheGet<Place[]>(cacheKey);
 		if (cached) {
-			return c.json<ApiResponse<Place[]>>({
-				success: true,
-				data: cached,
-				cachedAt: new Date().toISOString(),
-			});
+			return c.json<ApiResponse<Place[]>>({ success: true, data: cached });
 		}
 
-		const data = await fetchPlaces(lat, lng, radius, type);
+		const data = await fetchPlaces(lat, lng, radius, type, page);
 		await cacheSet(cacheKey, data, CACHE_TTL);
 		return c.json<ApiResponse<Place[]>>({ success: true, data });
 	} catch (e) {

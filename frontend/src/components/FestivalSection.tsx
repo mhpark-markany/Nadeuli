@@ -12,11 +12,7 @@ export function FestivalSection({ festivals }: { festivals: Festival[] }) {
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
 			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">🎪 주변 행사</h3>
-			<div
-				className={
-					expanded ? "max-h-80 space-y-2 overflow-y-auto scrollbar-gutter-stable" : "space-y-2"
-				}
-			>
+			<div className="max-h-80 space-y-2 overflow-y-auto scrollbar-gutter-stable">
 				{festivals.slice(0, displayCount).map((f) => (
 					<FestivalCard key={f.id} festival={f} />
 				))}

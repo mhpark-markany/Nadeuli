@@ -4,7 +4,7 @@ import { AirQualityCard } from "./components/AirQualityCard";
 import { ChatPanel } from "./components/ChatPanel";
 import { FestivalSection } from "./components/FestivalSection";
 import { HourlyTimeline } from "./components/HourlyTimeline";
-import { PlaceCard } from "./components/PlaceCard";
+import { PlaceSection } from "./components/PlaceSection";
 import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
 import { useGeolocation } from "./hooks/useGeolocation";
@@ -115,15 +115,8 @@ export function App() {
 					<HourlyTimeline hours={data.score.hourlyForecast} />
 
 					{/* 추천 장소 */}
-					{places.length > 0 && (
-						<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
-							<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">📍 추천 장소</h3>
-							<div className="flex gap-3 overflow-x-auto pb-2">
-								{places.slice(0, 6).map((p) => (
-									<PlaceCard key={p.contentId} place={p} />
-								))}
-							</div>
-						</div>
+					{places.length > 0 && geo.lat != null && geo.lng != null && (
+						<PlaceSection lat={geo.lat} lng={geo.lng} initialPlaces={places} />
 					)}
 
 					{/* 주변 행사 */}

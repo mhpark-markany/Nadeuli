@@ -34,8 +34,9 @@ export async function fetchPlaces(
 	lat: number,
 	lng: number,
 	type: "outdoor" | "indoor" | "all" = "all",
+	page = 1,
 ): Promise<Place[]> {
-	return fetchJson<Place[]>(`${BASE}/places?lat=${lat}&lng=${lng}&radius=5&type=${type}`);
+	return fetchJson<Place[]>(`${BASE}/places?lat=${lat}&lng=${lng}&radius=5&type=${type}&page=${page}`);
 }
 
 export async function fetchFestivals(lat: number, lng: number): Promise<Festival[]> {

@@ -36,15 +36,13 @@ export async function fetchPlaces(
 	lng: number,
 	radiusKm: number,
 	type: PlaceType,
+	page = 1,
 ): Promise<Place[]> {
 	const contentTypeIds = resolveContentTypes(type);
 	const results = await Promise.all(
-		contentTypeIds.map((id) => fetchByContentType(lat, lng, radiusKm, id)),
+		contentTypeIds.map((id) => fetchByContentType(lat, lng, radiusKm, id, page)),
 	);
-	return results
-		.flat()
-		.sort((a, b) => a.distance - b.distance)
-		.slice(0, 20);
+	return results.flat().sort((a, b) => a.distance - b.distance);
 }
 
 async function fetchByContentType(
@@ -52,6 +50,7 @@ async function fetchByContentType(
 	lng: number,
 	radiusKm: number,
 	contentTypeId: number,
+	page: number,
 ): Promise<Place[]> {
 	const url = buildDataGoKrUrl(`${BASE_URL}/locationBasedList2`, env.TOUR_API_KEY, {
 		MobileOS: "ETC",
@@ -62,6 +61,7 @@ async function fetchByContentType(
 		radius: String(radiusKm * 1000),
 		contentTypeId: String(contentTypeId),
 		numOfRows: "10",
+		pageNo: String(page),
 	});
 
 	const res = await fetch(url);
