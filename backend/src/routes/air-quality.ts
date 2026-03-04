@@ -13,7 +13,7 @@ airQualityRoute.get("/", async (c) => {
 	try {
 		let stationName = station ?? "";
 		if (!stationName && lat && lng) {
-			stationName = findNearestStation(0, 0, Number(lat), Number(lng));
+			stationName = findNearestStation(Number(lat), Number(lng));
 		}
 		if (!stationName) {
 			return c.json<ApiResponse<never>>(

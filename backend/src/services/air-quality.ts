@@ -35,7 +35,7 @@ const STATIONS: Array<{ name: string; lat: number; lng: number }> = [
 	{ name: "강동구", lat: 37.545, lng: 127.144 },
 ];
 
-export function findNearestStation(_tmX: number, _tmY: number, lat: number, lng: number): string {
+export function findNearestStation(lat: number, lng: number): string {
 	let minDist = Number.POSITIVE_INFINITY;
 	let nearest = "종로구";
 	for (const s of STATIONS) {

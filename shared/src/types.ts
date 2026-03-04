@@ -112,7 +112,7 @@ export interface Festival {
 
 export interface AIRecommendation {
 	summary: string;
-	bestTimeSlot: { start: string; end: string; reason: string };
+	bestTimeSlot: { start: string; end: string; reason: string } | null;
 	activities: Array<{
 		name: string;
 		type: "outdoor" | "indoor";

@@ -25,7 +25,7 @@ scoreRoute.get("/", async (c) => {
 
 	try {
 		const areaNo = toAreaNo(lat, lng);
-		const stationName = findNearestStation(0, 0, lat, lng);
+		const stationName = findNearestStation(lat, lng);
 
 		const [weather, lifeIndex, hourlyWeather] = await Promise.all([
 			fetchWeather(lat, lng),

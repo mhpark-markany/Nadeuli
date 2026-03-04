@@ -57,7 +57,7 @@ askRoute.post("/", async (c) => {
 				geminiErr instanceof Error ? geminiErr.message : geminiErr,
 			);
 			// Gemini 실패 시 전체 데이터 수집 후 폴백
-			const stationName = findNearestStation(0, 0, lat, lng);
+			const stationName = findNearestStation(lat, lng);
 			const areaNo = toAreaNo(lat, lng);
 			const [weather, lifeIndex, places] = await Promise.all([
 				fetchWeather(lat, lng),
