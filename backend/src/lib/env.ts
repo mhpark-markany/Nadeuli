@@ -4,15 +4,20 @@ const requiredKeys = [
 	"TOUR_API_KEY",
 	"GEMINI_API_KEY",
 	"KAKAO_REST_API_KEY",
+	"KAKAO_CLIENT_SECRET",
+	"JWT_SECRET",
+	"DATABASE_URL",
 ] as const;
 
 type EnvKey = (typeof requiredKeys)[number];
 
-function loadEnv(): Record<EnvKey, string> & {
+interface Env extends Record<EnvKey, string> {
 	REDIS_URL: string;
 	PORT: number;
 	CORS_ORIGIN: string;
-} {
+}
+
+function loadEnv(): Env {
 	const missing: string[] = [];
 	for (const key of requiredKeys) {
 		if (!process.env[key]) missing.push(key);
@@ -26,6 +31,9 @@ function loadEnv(): Record<EnvKey, string> & {
 		TOUR_API_KEY: process.env.TOUR_API_KEY ?? "",
 		GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
 		KAKAO_REST_API_KEY: process.env.KAKAO_REST_API_KEY ?? "",
+		KAKAO_CLIENT_SECRET: process.env.KAKAO_CLIENT_SECRET ?? "",
+		JWT_SECRET: process.env.JWT_SECRET ?? "",
+		DATABASE_URL: process.env.DATABASE_URL ?? "",
 		REDIS_URL: process.env.REDIS_URL ?? "redis://localhost:6379",
 		PORT: Number(process.env.PORT ?? "3000"),
 		CORS_ORIGIN: process.env.CORS_ORIGIN ?? "*",
