@@ -171,7 +171,7 @@ export function ChatPanel({ lat, lng, userId }: ChatPanelProps) {
 						if (e.key === "Enter" && !e.nativeEvent.isComposing) send();
 					}}
 					placeholder="질문을 입력하세요..."
-					className="flex-1 rounded-xl bg-(--bg-muted) px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-(--color-brand)/30"
+					className="flex-1 rounded-xl bg-(--bg-muted) px-4 py-2 text-base outline-none focus:ring-2 focus:ring-(--color-brand)/30"
 					disabled={loading}
 				/>
 				<button
