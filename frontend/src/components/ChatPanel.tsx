@@ -23,11 +23,12 @@ interface ChatPanelProps {
 	userId?: string;
 }
 
-function getStorageKey(userId?: string): string {
-	return userId ? `nadeuli_chat_${userId}` : "nadeuli_chat_guest";
+function getStorageKey(userId: string): string {
+	return `nadeuli_chat_${userId}`;
 }
 
 function loadMessages(userId?: string): ChatMessage[] {
+	if (!userId) return [];
 	try {
 		const saved = localStorage.getItem(getStorageKey(userId));
 		return saved ? (JSON.parse(saved) as ChatMessage[]) : [];
@@ -37,6 +38,7 @@ function loadMessages(userId?: string): ChatMessage[] {
 }
 
 function saveMessages(messages: ChatMessage[], userId?: string) {
+	if (!userId) return;
 	localStorage.setItem(getStorageKey(userId), JSON.stringify(messages));
 }
 
