@@ -1,5 +1,5 @@
 import type { AirQuality } from "shared";
-import { caiColor } from "../lib/colors";
+import { caiColor, o3Color, pm10Color, pm25Color } from "../lib/colors";
 
 export function AirQualityCard({ data }: { data: AirQuality }) {
 	const color = caiColor(data.cai);
@@ -18,21 +18,27 @@ export function AirQualityCard({ data }: { data: AirQuality }) {
 					{data.caiGrade}
 				</span>
 			</div>
-			<dl className="grid grid-cols-3 gap-2 text-sm">
-				<div>
-					<dt className="text-(--text-muted)">PM2.5</dt>
-					<dd className="font-medium">{data.pm25Value}㎍/㎥</dd>
+			<dl className="space-y-1 text-sm">
+				<div className="flex justify-between">
+					<dt className="text-(--text-muted)">초미세먼지</dt>
+					<dd className="font-medium" style={{ color: pm25Color(data.pm25Value) }}>
+						{data.pm25Value}㎍/㎥
+					</dd>
 				</div>
-				<div>
-					<dt className="text-(--text-muted)">PM10</dt>
-					<dd className="font-medium">{data.pm10Value}㎍/㎥</dd>
+				<div className="flex justify-between">
+					<dt className="text-(--text-muted)">미세먼지</dt>
+					<dd className="font-medium" style={{ color: pm10Color(data.pm10Value) }}>
+						{data.pm10Value}㎍/㎥
+					</dd>
 				</div>
-				<div>
-					<dt className="text-(--text-muted)">O₃</dt>
-					<dd className="font-medium">{data.o3Value}ppm</dd>
+				<div className="flex justify-between">
+					<dt className="text-(--text-muted)">오존</dt>
+					<dd className="font-medium" style={{ color: o3Color(data.o3Value) }}>
+						{data.o3Value}ppm
+					</dd>
 				</div>
 			</dl>
-			<p className="mt-2 text-xs text-(--text-muted)">
+			<p className="mt-2 text-right text-xs text-(--text-muted)">
 				{data.stationName} · {data.dataTime}
 			</p>
 		</div>

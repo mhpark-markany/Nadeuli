@@ -22,9 +22,9 @@ export function WeatherCard({ data }: { data: Weather }) {
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
 			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">날씨</h3>
-			<div className="mb-3 flex items-baseline gap-2">
+			<div className="mb-3 flex items-center gap-3">
 				<SkyIcon className="h-8 w-8 text-(--color-brand)" />
-				<span className="text-2xl font-bold">{data.temperature}°C</span>
+				<span className="text-2xl font-bold">{data.temperature}℃</span>
 				{data.precipitationType !== "없음" && (
 					<span className="flex items-center gap-1 text-sm text-(--color-info)">
 						<CloudRain className="h-4 w-4" />
@@ -32,10 +32,10 @@ export function WeatherCard({ data }: { data: Weather }) {
 					</span>
 				)}
 			</div>
-			<dl className="grid grid-cols-2 gap-y-1 text-sm">
+			<dl className="space-y-1 text-sm">
 				<div className="flex justify-between">
 					<dt className="text-(--text-muted)">체감온도</dt>
-					<dd className="font-medium">{data.feelsLike}°C</dd>
+					<dd className="font-medium">{data.feelsLike}℃</dd>
 				</div>
 				<div className="flex justify-between">
 					<dt className="text-(--text-muted)">습도</dt>

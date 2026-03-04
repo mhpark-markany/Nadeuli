@@ -1,31 +1,34 @@
+import { motion } from "framer-motion";
 import type { OutdoorScore } from "shared";
 import { gradeColor } from "../lib/colors";
 
 export function ScoreRing({ score }: { score: OutdoorScore }) {
 	const color = gradeColor(score.grade);
-	const circumference = 2 * Math.PI * 54;
+	const circumference = 2 * Math.PI * 52;
 	const offset = circumference - (score.total / 100) * circumference;
 
 	return (
 		<div className="flex flex-col items-center gap-2">
 			<svg width="140" height="140" viewBox="0 0 120 120" aria-label={`적합도 ${score.total}점`}>
-				<circle cx="60" cy="60" r="54" fill="none" stroke="var(--border-default)" strokeWidth="8" />
-				<circle
+				<circle cx="60" cy="60" r="52" fill="none" stroke="var(--border-default)" strokeWidth="12" />
+				<motion.circle
 					cx="60"
 					cy="60"
-					r="54"
+					r="52"
 					fill="none"
 					stroke={color}
-					strokeWidth="8"
+					strokeWidth="12"
 					strokeLinecap="round"
 					strokeDasharray={circumference}
-					strokeDashoffset={offset}
+					initial={{ strokeDashoffset: circumference }}
+					animate={{ strokeDashoffset: offset }}
+					transition={{ duration: 1, ease: "easeOut" }}
 					transform="rotate(-90 60 60)"
 				/>
-				<text x="60" y="55" textAnchor="middle" className="text-3xl font-bold" fill={color}>
+				<text x="60" y="68" textAnchor="middle" className="text-3xl font-bold" fill={color}>
 					{score.total}
 				</text>
-				<text x="60" y="72" textAnchor="middle" className="text-xs" fill="var(--text-muted)">
+				<text x="60" y="85" textAnchor="middle" className="text-xs" fill="var(--text-muted)">
 					/100
 				</text>
 			</svg>

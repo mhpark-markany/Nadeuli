@@ -97,7 +97,7 @@ export function App() {
 					<button
 						type="button"
 						onClick={geo.retry}
-						className="mt-2 rounded-lg bg-red-500/20 px-3 py-1 text-xs font-medium"
+						className="mt-2 cursor-pointer rounded-lg bg-red-500/20 px-3 py-1 text-xs font-medium transition-opacity hover:opacity-70"
 					>
 						다시 시도
 					</button>
@@ -127,6 +127,9 @@ export function App() {
 						<WeatherCard data={data.weather} />
 					</div>
 
+					{/* AI 채팅 */}
+					{geo.lat != null && geo.lng != null && <ChatPanel lat={geo.lat} lng={geo.lng} />}
+
 					{/* 시간대별 전망 */}
 					<HourlyTimeline hours={data.score.hourlyForecast} />
 
@@ -137,9 +140,6 @@ export function App() {
 
 					{/* 주변 행사 */}
 				{festivals.length > 0 && <FestivalSection festivals={festivals} />}
-
-					{/* AI 채팅 */}
-					{geo.lat != null && geo.lng != null && <ChatPanel lat={geo.lat} lng={geo.lng} />}
 				</div>
 			)}
 		</div>

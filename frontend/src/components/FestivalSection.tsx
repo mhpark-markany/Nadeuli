@@ -25,7 +25,7 @@ export function FestivalSection({ festivals }: { festivals: Festival[] }) {
 				<button
 					type="button"
 					onClick={() => setExpanded(!expanded)}
-					className="mt-3 w-full rounded-lg bg-(--bg-muted) py-2 text-sm text-(--text-secondary)"
+					className="mt-3 w-full cursor-pointer rounded-lg bg-(--bg-muted) py-2 text-sm text-(--text-secondary) transition-opacity hover:opacity-70"
 				>
 					{expanded ? "접기" : `더보기 (${festivals.length - INITIAL_COUNT}개)`}
 				</button>

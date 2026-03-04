@@ -28,8 +28,8 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const nextId = useRef(0);
 
-	const send = async () => {
-		const q = input.trim();
+	const send = async (query?: string) => {
+		const q = (query ?? input).trim();
 		if (!q || loading) return;
 
 		setInput("");
@@ -71,11 +71,20 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 			</div>
 
 			{/* 메시지 영역 */}
-			<div ref={scrollRef} className="max-h-80 space-y-3 overflow-y-auto px-5 py-4">
+			<div ref={scrollRef} className="min-h-32 max-h-80 space-y-3 overflow-y-auto px-5 py-4">
 				{messages.length === 0 && (
-					<p className="text-center text-xs text-(--text-muted)">
-						"오늘 아이랑 공원 가도 될까?" 같은 질문을 해보세요
-					</p>
+					<div className="flex h-full flex-col justify-end gap-2">
+						{["오늘 야외 활동하기 좋은 시간대는?", "지금 공원 산책해도 괜찮을까?", "오늘 미세먼지 주의할 점 있어?"].map((q) => (
+							<button
+								key={q}
+								type="button"
+								onClick={() => send(q)}
+								className="cursor-pointer self-end rounded-xl bg-(--bg-muted) px-3 py-2 text-xs text-(--text-secondary) transition-colors hover:opacity-70"
+							>
+								{q}
+							</button>
+						))}
+					</div>
 				)}
 
 				{messages.map((msg) => (
@@ -116,9 +125,9 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 				/>
 				<button
 					type="button"
-					onClick={send}
+					onClick={() => send()}
 					disabled={loading || !input.trim()}
-					className="rounded-xl bg-(--color-brand) px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+					className="cursor-pointer rounded-xl bg-(--color-brand) px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-40"
 				>
 					전송
 				</button>
