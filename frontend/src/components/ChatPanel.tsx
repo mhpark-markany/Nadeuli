@@ -1,3 +1,10 @@
+import {
+	AlertTriangle,
+	Building2,
+	Clock,
+	MessageCircle,
+	TreeDeciduous,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import type { AIRecommendation } from "shared";
 import { askAI } from "../lib/api";
@@ -57,7 +64,10 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 	return (
 		<div className="rounded-2xl bg-(--bg-card) shadow-sm">
 			<div className="border-b border-(--border-default) px-5 py-3">
-				<h3 className="text-sm font-medium text-(--text-secondary)">💬 AI에게 물어보기</h3>
+				<h3 className="flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
+					<MessageCircle className="h-4 w-4" />
+					AI에게 물어보기
+				</h3>
 			</div>
 
 			{/* 메시지 영역 */}
@@ -121,8 +131,9 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 	return (
 		<div className="space-y-2 rounded-xl bg-(--bg-muted) p-3 text-xs">
 			{/* 추천 시간 */}
-			<p className="text-(--text-secondary)">
-				⏰ 추천 시간: {rec.bestTimeSlot.start}~{rec.bestTimeSlot.end} — {rec.bestTimeSlot.reason}
+			<p className="flex items-center gap-1 text-(--text-secondary)">
+				<Clock className="h-3 w-3" />
+				추천 시간: {rec.bestTimeSlot.start}~{rec.bestTimeSlot.end} — {rec.bestTimeSlot.reason}
 			</p>
 
 			{/* 활동 */}
@@ -131,9 +142,14 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 					{rec.activities.map((a) => (
 						<span
 							key={a.name}
-							className={`rounded-lg px-2 py-1 ${a.type === "outdoor" ? "bg-green-500/10 text-(--color-success)" : "bg-(--color-brand)/10 text-(--color-brand)"}`}
+							className={`flex items-center gap-1 rounded-lg px-2 py-1 ${a.type === "outdoor" ? "bg-green-500/10 text-(--color-success)" : "bg-(--color-brand)/10 text-(--color-brand)"}`}
 						>
-							{a.type === "outdoor" ? "🌳" : "🏢"} {a.name}
+							{a.type === "outdoor" ? (
+								<TreeDeciduous className="h-3 w-3" />
+							) : (
+								<Building2 className="h-3 w-3" />
+							)}
+							{a.name}
 						</span>
 					))}
 				</div>
@@ -150,8 +166,9 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 
 			{/* 보건 경고 */}
 			{rec.healthWarning && (
-				<p className="rounded-lg bg-red-500/10 px-2 py-1 text-(--color-error)">
-					⚠️ {rec.healthWarning}
+				<p className="flex items-center gap-1 rounded-lg bg-red-500/10 px-2 py-1 text-(--color-error)">
+					<AlertTriangle className="h-3 w-3" />
+					{rec.healthWarning}
 				</p>
 			)}
 		</div>

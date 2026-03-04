@@ -1,3 +1,4 @@
+import { PartyPopper } from "lucide-react";
 import type { Festival } from "shared";
 
 function formatDate(dateStr: string): string {
@@ -14,7 +15,7 @@ export function FestivalCard({ festival }: { festival: Festival }) {
 
 	return (
 		<div className="flex items-start gap-3 rounded-xl bg-(--bg-card) p-4 shadow-sm">
-			<span className="text-xl">🎪</span>
+			<PartyPopper className="h-5 w-5 shrink-0 text-(--color-brand)" />
 			<div className="min-w-0 flex-1">
 				<h4 className="truncate text-sm font-medium">{festival.title}</h4>
 				<p className="mt-0.5 truncate text-xs text-(--text-muted)">{festival.address}</p>

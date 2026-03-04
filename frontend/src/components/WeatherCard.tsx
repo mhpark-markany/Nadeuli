@@ -1,9 +1,11 @@
+import { Cloud, CloudRain, CloudSun, Sun } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Weather } from "shared";
 
-const SKY_EMOJI: Record<string, string> = {
-	맑음: "☀️",
-	구름많음: "⛅",
-	흐림: "☁️",
+const SKY_ICON: Record<string, LucideIcon> = {
+	맑음: Sun,
+	구름많음: CloudSun,
+	흐림: Cloud,
 };
 
 const WBGT_COLOR: Record<string, string> = {
@@ -15,14 +17,19 @@ const WBGT_COLOR: Record<string, string> = {
 };
 
 export function WeatherCard({ data }: { data: Weather }) {
+	const SkyIcon = SKY_ICON[data.sky] ?? CloudSun;
+
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
 			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">날씨</h3>
 			<div className="mb-3 flex items-baseline gap-2">
-				<span className="text-3xl">{SKY_EMOJI[data.sky] ?? "🌤️"}</span>
+				<SkyIcon className="h-8 w-8 text-(--color-brand)" />
 				<span className="text-2xl font-bold">{data.temperature}°C</span>
 				{data.precipitationType !== "없음" && (
-					<span className="text-sm text-(--color-info)">🌧️ {data.precipitationType}</span>
+					<span className="flex items-center gap-1 text-sm text-(--color-info)">
+						<CloudRain className="h-4 w-4" />
+						{data.precipitationType}
+					</span>
 				)}
 			</div>
 			<dl className="grid grid-cols-2 gap-y-1 text-sm">

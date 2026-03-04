@@ -1,3 +1,4 @@
+import { MapPin } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Place } from "shared";
 import { fetchPlaces } from "../lib/api";
@@ -58,7 +59,10 @@ export function PlaceSection({ lat, lng, initialPlaces }: Props) {
 
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
-			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">📍 추천 장소</h3>
+			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
+				<MapPin className="h-4 w-4" />
+				추천 장소
+			</h3>
 			<div className="flex gap-3 overflow-x-auto pb-2">
 				{places.map((p) => (
 					<PlaceCard key={p.contentId} place={p} />

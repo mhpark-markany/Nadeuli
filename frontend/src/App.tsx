@@ -1,3 +1,11 @@
+import {
+	Building2,
+	CloudSun,
+	MapPin,
+	Monitor,
+	Moon,
+	Sun,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { DashboardData, Festival, Place } from "shared";
 import { AirQualityCard } from "./components/AirQualityCard";
@@ -52,17 +60,25 @@ export function App() {
 		<div className="mx-auto max-w-lg px-4 py-6">
 			{/* 헤더 */}
 			<header className="mb-6 flex items-center justify-between">
-				<h1 className="text-xl font-bold">🌤️ 나들이</h1>
+				<h1 className="flex items-center gap-2 text-xl font-bold">
+					<CloudSun className="h-6 w-6 text-(--color-brand)" />
+					나들이
+				</h1>
 				<div className="flex items-center gap-3">
-					{address && <span className="text-sm text-(--text-muted)">📍 {address}</span>}
+					{address && (
+						<span className="flex items-center gap-1 text-sm text-(--text-muted)">
+							<MapPin className="h-4 w-4" />
+							{address}
+						</span>
+					)}
 					<select
 						value={theme}
 						onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
 						className="rounded-lg bg-(--bg-muted) px-2 py-1 text-sm text-(--text-secondary)"
 					>
-						<option value="system">🖥️ 시스템</option>
-						<option value="light">☀️ 라이트</option>
-						<option value="dark">🌙 다크</option>
+						<option value="system">시스템</option>
+						<option value="light">라이트</option>
+						<option value="dark">다크</option>
 					</select>
 				</div>
 			</header>
