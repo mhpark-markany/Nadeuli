@@ -1,13 +1,20 @@
 import type { HourlyScore } from "shared";
 import { gradeColor } from "../lib/colors";
+import { getSunTimes } from "../lib/weather";
 
 const POINT_GAP = 64;
 const PADDING_X = 24;
 const PADDING_TOP = 20;
 const CHART_H = 100;
-const SVG_H = 170;
+const SVG_H = 190;
 
-export function HourlyTimeline({ hours }: { hours: HourlyScore[] }) {
+interface Props {
+	hours: HourlyScore[];
+	lat: number;
+	lng: number;
+}
+
+export function HourlyTimeline({ hours, lat, lng }: Props) {
 	if (hours.length === 0) return null;
 
 	const svgW = PADDING_X * 2 + (hours.length - 1) * POINT_GAP;
@@ -22,10 +29,32 @@ export function HourlyTimeline({ hours }: { hours: HourlyScore[] }) {
 
 	const gradientPath = `${linePath} L${points[points.length - 1].x},${PADDING_TOP + CHART_H} L${points[0].x},${PADDING_TOP + CHART_H} Z`;
 
+	// 일출/일몰 마커 계산
+	const { sunrise, sunset } = getSunTimes(lat, lng);
+	const sunriseHour = sunrise.getHours() + sunrise.getMinutes() / 60;
+	const sunsetHour = sunset.getHours() + sunset.getMinutes() / 60;
+
+	const firstHour = hours[0].hour;
+	const lastHour = hours[hours.length - 1].hour;
+
+	const getSunMarker = (sunHour: number, label: string, time: Date) => {
+		if (sunHour < firstHour || sunHour > lastHour) return null;
+		const x = PADDING_X + (sunHour - firstHour) * POINT_GAP;
+		const timeStr = time.toLocaleTimeString("ko-KR", {
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+		});
+		return { x, label, timeStr };
+	};
+
+	const sunriseMarker = getSunMarker(sunriseHour, "🌅", sunrise);
+	const sunsetMarker = getSunMarker(sunsetHour, "🌇", sunset);
+
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
 			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">시간대별 전망</h3>
-			<div className="overflow-x-auto">
+			<div className="overflow-x-auto select-none">
 				<svg
 					width={svgW}
 					height={SVG_H}
@@ -83,6 +112,54 @@ export function HourlyTimeline({ hours }: { hours: HourlyScore[] }) {
 							</text>
 						</g>
 					))}
+
+					{/* 일출/일몰 마커 */}
+					{sunriseMarker && (
+						<g>
+							<line
+								x1={sunriseMarker.x}
+								y1={PADDING_TOP}
+								x2={sunriseMarker.x}
+								y2={PADDING_TOP + CHART_H}
+								stroke="var(--text-muted)"
+								strokeWidth={1}
+								strokeDasharray="4 2"
+								opacity={0.5}
+							/>
+							<text
+								x={sunriseMarker.x}
+								y={PADDING_TOP + CHART_H + 38}
+								textAnchor="middle"
+								className="text-[10px]"
+								fill="var(--text-muted)"
+							>
+								{sunriseMarker.label} {sunriseMarker.timeStr}
+							</text>
+						</g>
+					)}
+					{sunsetMarker && (
+						<g>
+							<line
+								x1={sunsetMarker.x}
+								y1={PADDING_TOP}
+								x2={sunsetMarker.x}
+								y2={PADDING_TOP + CHART_H}
+								stroke="var(--text-muted)"
+								strokeWidth={1}
+								strokeDasharray="4 2"
+								opacity={0.5}
+							/>
+							<text
+								x={sunsetMarker.x}
+								y={PADDING_TOP + CHART_H + 38}
+								textAnchor="middle"
+								className="text-[10px]"
+								fill="var(--text-muted)"
+							>
+								{sunsetMarker.label} {sunsetMarker.timeStr}
+							</text>
+						</g>
+					)}
 				</svg>
 			</div>
 		</div>

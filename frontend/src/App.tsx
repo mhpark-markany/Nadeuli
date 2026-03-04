@@ -131,7 +131,7 @@ export function App() {
 					{geo.lat != null && geo.lng != null && <ChatPanel lat={geo.lat} lng={geo.lng} />}
 
 					{/* 시간대별 전망 */}
-					<HourlyTimeline hours={data.score.hourlyForecast} />
+					<HourlyTimeline hours={data.score.hourlyForecast} lat={geo.lat ?? 0} lng={geo.lng ?? 0} />
 
 					{/* 추천 장소 */}
 					{places.length > 0 && geo.lat != null && geo.lng != null && (

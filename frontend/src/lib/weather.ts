@@ -1,9 +1,14 @@
-import SunCalc from "suncalc";
 import type { PrecipitationType, Sky } from "shared";
+import SunCalc from "suncalc";
+
+export function getSunTimes(lat: number, lng: number, date = new Date()) {
+	const times = SunCalc.getTimes(date, lat, lng);
+	return { sunrise: times.sunrise, sunset: times.sunset };
+}
 
 export function isNightTime(lat: number, lng: number, date = new Date()): boolean {
-	const times = SunCalc.getTimes(date, lat, lng);
-	return date < times.sunrise || date > times.sunset;
+	const { sunrise, sunset } = getSunTimes(lat, lng, date);
+	return date < sunrise || date > sunset;
 }
 
 export function getWeatherLottie(
