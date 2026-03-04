@@ -85,15 +85,6 @@ export function App() {
 							{address}
 						</span>
 					)}
-					<select
-						value={theme}
-						onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
-						className="rounded-lg bg-(--bg-muted) px-2 py-1 text-sm text-(--text-secondary)"
-					>
-						<option value="system">시스템</option>
-						<option value="light">라이트</option>
-						<option value="dark">다크</option>
-					</select>
 					<LoginButton />
 				</div>
 			</header>
@@ -159,6 +150,24 @@ export function App() {
 					{festivals.length > 0 && <FestivalSection festivals={festivals} />}
 				</div>
 			)}
+
+			{/* 푸터 */}
+			<footer className="mt-8 border-t border-(--border-default) pt-4 pb-6 text-center text-xs text-(--text-muted)">
+				<div className="mb-3 flex items-center justify-center gap-2">
+					<span>테마</span>
+					<select
+						value={theme}
+						onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
+						className="rounded-lg bg-(--bg-muted) px-2 py-1 text-(--text-secondary)"
+					>
+						<option value="system">시스템</option>
+						<option value="light">라이트</option>
+						<option value="dark">다크</option>
+					</select>
+				</div>
+				<p>날씨 데이터: 기상청 | 대기질: 에어코리아 | 장소: 한국관광공사</p>
+				<p className="mt-1">© 2026 나들이</p>
+			</footer>
 		</div>
 	);
 }
