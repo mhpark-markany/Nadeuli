@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { Prisma, User } from "../generated/prisma/client.js";
+import type { Prisma, User } from "@prisma/client";
 import { authMiddleware } from "../lib/auth-middleware.js";
 import { prisma } from "../lib/db.js";
 
