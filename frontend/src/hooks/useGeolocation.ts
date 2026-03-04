@@ -44,6 +44,12 @@ export function useGeolocation(): GeoState & { retry: () => void } {
 
 	useEffect(() => {
 		locate();
+
+		const onVisible = () => {
+			if (document.visibilityState === "visible") locate();
+		};
+		document.addEventListener("visibilitychange", onVisible);
+		return () => document.removeEventListener("visibilitychange", onVisible);
 	}, [locate]);
 
 	return { ...state, retry: locate };
