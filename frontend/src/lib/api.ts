@@ -38,8 +38,8 @@ export async function fetchPlaces(
 	return fetchJson<Place[]>(`${BASE}/places?lat=${lat}&lng=${lng}&radius=5&type=${type}`);
 }
 
-export async function fetchFestivals(): Promise<Festival[]> {
-	return fetchJson<Festival[]>(`${BASE}/festivals`);
+export async function fetchFestivals(lat: number, lng: number): Promise<Festival[]> {
+	return fetchJson<Festival[]>(`${BASE}/festivals?lat=${lat}&lng=${lng}`);
 }
 
 export async function askAI(question: string, lat: number, lng: number): Promise<AskResponse> {

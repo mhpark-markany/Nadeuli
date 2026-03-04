@@ -5,21 +5,27 @@ import { fetchFestivals } from "../services/festivals.js";
 
 export const festivalsRoute = new Hono();
 
-const CACHE_TTL = 86400; // 24시간
+const CACHE_TTL = 3600; // 1시간
 
 festivalsRoute.get("/", async (c) => {
+	const lat = c.req.query("lat");
+	const lng = c.req.query("lng");
+
+	if (!lat || !lng) {
+		return c.json<ApiResponse<never>>(
+			{ success: false, error: { code: "MISSING_PARAM", message: "lat, lng 필수" } },
+			400,
+		);
+	}
+
 	try {
-		const cacheKey = "festivals";
+		const cacheKey = `festivals:${Number(lat).toFixed(1)}:${Number(lng).toFixed(1)}`;
 		const cached = await cacheGet<Festival[]>(cacheKey);
 		if (cached) {
-			return c.json<ApiResponse<Festival[]>>({
-				success: true,
-				data: cached,
-				cachedAt: new Date().toISOString(),
-			});
+			return c.json<ApiResponse<Festival[]>>({ success: true, data: cached });
 		}
 
-		const data = await fetchFestivals();
+		const data = await fetchFestivals(Number(lat), Number(lng));
 		await cacheSet(cacheKey, data, CACHE_TTL);
 		return c.json<ApiResponse<Festival[]>>({ success: true, data });
 	} catch (e) {

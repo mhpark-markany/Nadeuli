@@ -28,7 +28,7 @@ export function App() {
 			const [dashboard, placesData, festivalsData, addressData] = await Promise.all([
 				fetchDashboard(lat, lng),
 				fetchPlaces(lat, lng).catch(() => [] as Place[]),
-				fetchFestivals().catch(() => [] as Festival[]),
+				fetchFestivals(lat, lng).catch(() => [] as Festival[]),
 				fetchAddress(lat, lng).catch(() => null),
 			]);
 			setData(dashboard);

@@ -95,7 +95,7 @@ export interface Place {
 	tel?: string;
 }
 
-// ── 축제 (전국축제표준데이터) ──
+// ── 축제 (위치 기반 행사) ──
 
 export interface Festival {
 	id: string;
@@ -105,8 +105,7 @@ export interface Festival {
 	lng: number;
 	startDate: string;
 	endDate: string;
-	description?: string;
-	tel?: string;
+	distance?: number; // km
 }
 
 // ── AI 추천 (Gemini) ──
