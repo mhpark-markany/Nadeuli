@@ -1,6 +1,7 @@
 import type { Festival } from "shared";
 import { buildDataGoKrUrl } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
+import { nowKST } from "../lib/kst.js";
 
 const BASE_URL = "http://apis.data.go.kr/B551011/KorService2/searchFestival2";
 
@@ -26,7 +27,7 @@ interface FestivalApiResponse {
 }
 
 function todayStr(): string {
-	const d = new Date();
+	const d = nowKST();
 	return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
 }
 

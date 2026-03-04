@@ -1,6 +1,7 @@
 import type { PrecipitationType, WbgtGrade, Weather } from "shared";
 import { buildDataGoKrUrl } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
+import { nowKST } from "../lib/kst.js";
 
 const BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0";
 
@@ -59,7 +60,7 @@ interface KmaResponse {
 
 export async function fetchWeather(lat: number, lng: number): Promise<Weather> {
 	const { nx, ny } = toGrid(lat, lng);
-	const now = new Date();
+	const now = nowKST();
 	const baseDate = formatDate(now);
 	const baseTime = formatTime(now);
 
@@ -220,7 +221,7 @@ function getVilageFcstBase(now: Date): { baseDate: string; baseTime: string } {
 
 export async function fetchHourlyForecast(lat: number, lng: number): Promise<HourlyWeather[]> {
 	const { nx, ny } = toGrid(lat, lng);
-	const now = new Date();
+	const now = nowKST();
 	const { baseDate, baseTime } = getVilageFcstBase(now);
 
 	const url = buildDataGoKrUrl(`${BASE_URL}/getVilageFcst`, env.KMA_API_KEY, {
@@ -238,14 +239,19 @@ export async function fetchHourlyForecast(lat: number, lng: number): Promise<Hou
 
 	const items = data.response.body.items.item;
 	const today = formatDate(now);
+	const tomorrow = formatDate(new Date(now.getTime() + 86400000));
 	const currentHour = now.getHours();
 
-	// 시간대별로 그룹핑 (오늘 현재시각 이후 ~ 12시간)
+	// 시간대별로 그룹핑 (현재시각 이후 ~ 12시간, 내일 포함)
 	const hourMap = new Map<number, Partial<HourlyWeather>>();
 	for (const item of items) {
-		if (item.fcstDate !== today) continue;
-		const hour = Number(item.fcstTime.slice(0, 2));
-		if (hour <= currentHour) continue;
+		const isToday = item.fcstDate === today;
+		const isTomorrow = item.fcstDate === tomorrow;
+		if (!isToday && !isTomorrow) continue;
+
+		let hour = Number(item.fcstTime.slice(0, 2));
+		if (isTomorrow) hour += 24;
+		if (isToday && hour <= currentHour) continue;
 
 		const entry = hourMap.get(hour) ?? { hour };
 		switch (item.category) {

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { AIRecommendation, ApiResponse, AskRequest, AskResponse } from "shared";
 import { cacheGet, cacheSet } from "../lib/cache.js";
+import { nowKST } from "../lib/kst.js";
 import { fetchAirQuality, findNearestStation } from "../services/air-quality.js";
 import { generateFallback } from "../services/fallback.js";
 import { askGemini } from "../services/gemini.js";
@@ -15,7 +16,7 @@ export const askRoute = new Hono();
 const CACHE_TTL = 1800; // 30분
 
 function buildCacheKey(lat: number, lng: number, question: string): string {
-	const now = new Date();
+	const now = nowKST();
 	const slot = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}_${String(now.getHours()).padStart(2, "0")}${now.getMinutes() < 30 ? "00" : "30"}`;
 	const qHash = Array.from(question.slice(0, 50))
 		.reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0)

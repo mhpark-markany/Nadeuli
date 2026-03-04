@@ -108,7 +108,9 @@ export function HourlyTimeline({ hours, lat, lng }: Props) {
 								className="text-[11px]"
 								fill="var(--text-muted)"
 							>
-								{String(p.hour).padStart(2, "0")}시
+								{p.hour >= 24
+								? `내일 ${String(p.hour - 24).padStart(2, "0")}시`
+								: `${String(p.hour).padStart(2, "0")}시`}
 							</text>
 						</g>
 					))}

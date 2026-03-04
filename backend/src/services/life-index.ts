@@ -1,13 +1,14 @@
 import type { LifeIndex } from "shared";
 import { buildDataGoKrUrl } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
+import { nowKST } from "../lib/kst.js";
 
 const BASE = "http://apis.data.go.kr/1360000";
 
 // ── 생활기상지수 통합 조회 ──
 
 export async function fetchLifeIndex(areaNo: string): Promise<LifeIndex> {
-	const now = new Date();
+	const now = nowKST();
 	const time = formatDateTime(now);
 	const month = now.getMonth() + 1;
 

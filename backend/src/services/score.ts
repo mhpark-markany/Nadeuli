@@ -1,4 +1,5 @@
 import type { AirQuality, HourlyScore, LifeIndex, OutdoorScore, ScoreGrade, Weather } from "shared";
+import { nowKST } from "../lib/kst.js";
 import type { HourlyWeather } from "./weather.js";
 
 interface ScoreInput {
@@ -43,7 +44,7 @@ export function calculateOutdoorScore(input: ScoreInput): OutdoorScore {
 	const healthBlockActive = air.pm10Value >= 81 || air.pm25Value >= pm25Threshold;
 
 	// [5단계] 계절성 페널티 (곱연산자)
-	const month = new Date().getMonth() + 1;
+	const month = nowKST().getMonth() + 1;
 	let seasonalPenalty = 1.0;
 
 	if ([4, 5, 8, 9, 10].includes(month) && lifeIndex.pollenRisk != null) {
