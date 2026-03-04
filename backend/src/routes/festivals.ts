@@ -25,7 +25,7 @@ festivalsRoute.get("/", async (c) => {
 			return c.json<ApiResponse<Festival[]>>({ success: true, data: cached });
 		}
 
-		const data = await fetchFestivals(Number(lat), Number(lng));
+		const data = await fetchFestivals({ lat: Number(lat), lng: Number(lng) });
 		await cacheSet(cacheKey, data, CACHE_TTL);
 		return c.json<ApiResponse<Festival[]>>({ success: true, data });
 	} catch (e) {

@@ -40,21 +40,35 @@ function calcDistance(lat1: number, lng1: number, lat2: number, lng2: number): n
 	return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export async function fetchFestivals(
-	lat: number,
-	lng: number,
-	radiusKm = 50,
-	limit = 10,
-): Promise<Festival[]> {
-	const url = buildDataGoKrUrl(BASE_URL, env.TOUR_API_KEY, {
+export interface FetchFestivalsOptions {
+	lat?: number;
+	lng?: number;
+	areaCode?: string;
+	sigunguCode?: string;
+	radiusKm?: number;
+	limit?: number;
+}
+
+export async function fetchFestivals(options: FetchFestivalsOptions = {}): Promise<Festival[]> {
+	const { lat, lng, areaCode, sigunguCode, radiusKm = 50, limit = 10 } = options;
+
+	const params: Record<string, string> = {
 		MobileOS: "ETC",
 		MobileApp: "Nadeuli",
 		_type: "json",
 		eventStartDate: todayStr(),
 		numOfRows: "100",
 		arrange: "Q",
-	});
+	};
 
+	if (areaCode) {
+		params.areaCode = areaCode;
+	}
+	if (sigunguCode) {
+		params.sigunguCode = sigunguCode;
+	}
+
+	const url = buildDataGoKrUrl(BASE_URL, env.TOUR_API_KEY, params);
 	const res = await fetch(url);
 	const data = (await res.json()) as FestivalApiResponse;
 
@@ -64,6 +78,20 @@ export async function fetchFestivals(
 
 	const itemArray = Array.isArray(items.item) ? items.item : [items.item];
 
+	// areaCode로 조회한 경우 거리 필터링 없이 반환
+	if (areaCode || lat == null || lng == null) {
+		return itemArray.slice(0, limit).map((item) => ({
+			id: item.contentid,
+			title: item.title,
+			address: [item.addr1, item.addr2].filter(Boolean).join(" "),
+			lat: Number(item.mapy) || 0,
+			lng: Number(item.mapx) || 0,
+			startDate: item.eventstartdate,
+			endDate: item.eventenddate,
+		}));
+	}
+
+	// 좌표 기반 조회: 거리 계산 + 필터링
 	return itemArray
 		.map((item) => {
 			const itemLat = Number(item.mapy) || 0;
@@ -81,6 +109,6 @@ export async function fetchFestivals(
 			};
 		})
 		.filter((f) => f.distance <= radiusKm)
-		.sort((a, b) => a.distance - b.distance)
+		.sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0))
 		.slice(0, limit);
 }

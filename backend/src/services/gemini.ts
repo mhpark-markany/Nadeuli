@@ -6,10 +6,11 @@ import {
 import type { AIRecommendation } from "shared";
 import { env } from "../lib/env.js";
 import { fetchAirQuality, findNearestStation } from "./air-quality.js";
+import { resolveAreaCode } from "./area-code.js";
 import { fetchFestivals } from "./festivals.js";
+import { searchAddress } from "./geocode.js";
 import { toAreaNo } from "./geo.js";
 import { fetchLifeIndex } from "./life-index.js";
-import { searchAddress } from "./geocode.js";
 import { fetchPlaces } from "./places.js";
 import { calculateOutdoorScore } from "./score.js";
 import { fetchWeather } from "./weather.js";
@@ -53,6 +54,17 @@ const TOOLS: FunctionDeclarationsTool[] = [
 					type: SchemaType.OBJECT,
 					properties: {
 						query: { type: SchemaType.STRING, description: "지역명 또는 장소명 (예: 강남역, 부산 해운대, 제주도)" },
+					},
+					required: ["query"],
+				},
+			},
+			{
+				name: "get_area_code",
+				description: "지역명을 TourAPI 지역코드로 변환합니다. 축제/행사 조회 시 특정 시/도나 시/군/구 전체를 검색할 때 사용하세요.",
+				parameters: {
+					type: SchemaType.OBJECT,
+					properties: {
+						query: { type: SchemaType.STRING, description: "지역명 (예: 강원도, 경남, 창원시, 전주)" },
 					},
 					required: ["query"],
 				},
@@ -127,14 +139,16 @@ const TOOLS: FunctionDeclarationsTool[] = [
 			},
 			{
 				name: "get_festivals",
-				description: "지정 좌표 주변의 축제·공연·행사를 조회합니다",
+				description:
+					"축제·공연·행사를 조회합니다. 좌표(lat, lng) 또는 지역코드(area_code, sigungu_code) 중 하나를 사용하세요. 지역코드는 get_area_code로 조회할 수 있습니다.",
 				parameters: {
 					type: SchemaType.OBJECT,
 					properties: {
-						lat: { type: SchemaType.NUMBER, description: "위도" },
-						lng: { type: SchemaType.NUMBER, description: "경도" },
+						lat: { type: SchemaType.NUMBER, description: "위도 (좌표 기반 검색 시)" },
+						lng: { type: SchemaType.NUMBER, description: "경도 (좌표 기반 검색 시)" },
+						area_code: { type: SchemaType.STRING, description: "시/도 지역코드" },
+						sigungu_code: { type: SchemaType.STRING, description: "시/군/구 지역코드" },
 					},
-					required: ["lat", "lng"],
 				},
 			},
 		],
@@ -146,6 +160,13 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
 		const query = args.query as string;
 		const result = await searchAddress(query);
 		if (!result) return { error: `"${query}"에 대한 좌표를 찾을 수 없습니다` };
+		return result;
+	}
+
+	if (name === "get_area_code") {
+		const query = args.query as string;
+		const result = resolveAreaCode(query);
+		if (!result) return { error: `"${query}"에 대한 지역코드를 찾을 수 없습니다` };
 		return result;
 	}
 
@@ -180,7 +201,12 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
 				((args.type as string) ?? "all") as "outdoor" | "indoor" | "all",
 			);
 		case "get_festivals":
-			return fetchFestivals(lat, lng);
+			return fetchFestivals({
+				lat,
+				lng,
+				areaCode: args.area_code as string | undefined,
+				sigunguCode: args.sigungu_code as string | undefined,
+			});
 		default:
 			return { error: `알 수 없는 도구: ${name}` };
 	}

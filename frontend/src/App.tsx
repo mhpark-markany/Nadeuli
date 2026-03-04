@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { DashboardData, Festival, Place } from "shared";
 import { AirQualityCard } from "./components/AirQualityCard";
 import { ChatPanel } from "./components/ChatPanel";
-import { FestivalCard } from "./components/FestivalCard";
+import { FestivalSection } from "./components/FestivalSection";
 import { HourlyTimeline } from "./components/HourlyTimeline";
 import { PlaceCard } from "./components/PlaceCard";
 import { ScoreRing } from "./components/ScoreRing";
@@ -127,16 +127,7 @@ export function App() {
 					)}
 
 					{/* 주변 행사 */}
-					{festivals.length > 0 && (
-						<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
-							<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">🎪 주변 행사</h3>
-							<div className="space-y-2">
-								{festivals.slice(0, 4).map((f) => (
-									<FestivalCard key={f.id} festival={f} />
-								))}
-							</div>
-						</div>
-					)}
+				{festivals.length > 0 && <FestivalSection festivals={festivals} />}
 
 					{/* AI 채팅 */}
 					{geo.lat != null && geo.lng != null && <ChatPanel lat={geo.lat} lng={geo.lng} />}
