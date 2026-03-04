@@ -3,10 +3,11 @@
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"noEmit": true,
+		"allowJs": true,
 		"baseUrl": ".",
 		"paths": {
 			"shared": ["../shared/dist/types.d.ts"]
 		}
 	},
-	"include": ["src"]
+	"include": ["src", "shared"]
 }

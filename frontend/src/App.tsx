@@ -1,6 +1,7 @@
-import { CloudSun, MapPin } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { MapPin } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DashboardData, Festival, Place } from "shared";
+import RotatingText from "../shared/components/RotatingText";
 import { AirQualityCard } from "./components/AirQualityCard";
 import { ChatPanel } from "./components/ChatPanel";
 import { FestivalSection } from "./components/FestivalSection";
@@ -13,6 +14,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useGeolocation } from "./hooks/useGeolocation";
 import { useTheme } from "./hooks/useTheme";
 import { fetchAddress, fetchDashboard, fetchFestivals, fetchPlaces } from "./lib/api";
+import { selectTitles } from "./lib/naduri-titles";
 
 export function App() {
 	const geo = useGeolocation();
@@ -52,12 +54,28 @@ export function App() {
 		}
 	}, [geo.lat, geo.lng, load]);
 
+	const titles = useMemo(
+		() => selectTitles(data?.weather, data?.airQuality),
+		[data?.weather, data?.airQuality],
+	);
+
 	return (
 		<div className="mx-auto max-w-lg px-4 py-6">
 			{/* 헤더 */}
 			<header className="mb-6 flex items-center justify-between">
 				<h1 className="flex items-center gap-2 text-xl font-bold">
-					<CloudSun className="h-6 w-6 text-(--color-brand)" />
+					<RotatingText
+						texts={titles}
+						mainClassName="px-2 bg-(--color-brand) text-white overflow-hidden py-0.5 rounded-lg"
+						staggerFrom="last"
+						initial={{ y: "100%" }}
+						animate={{ y: 0 }}
+						exit={{ y: "-120%" }}
+						staggerDuration={0.025}
+						splitLevelClassName="overflow-hidden pb-0.5"
+						transition={{ type: "spring", damping: 30, stiffness: 400 }}
+						rotationInterval={3000}
+					/>
 					나들이
 				</h1>
 				<div className="flex items-center gap-3">
@@ -67,7 +85,6 @@ export function App() {
 							{address}
 						</span>
 					)}
-					<LoginButton />
 					<select
 						value={theme}
 						onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
@@ -77,6 +94,7 @@ export function App() {
 						<option value="light">라이트</option>
 						<option value="dark">다크</option>
 					</select>
+					<LoginButton />
 				</div>
 			</header>
 

@@ -145,7 +145,9 @@ export function ChatPanel({ lat, lng, userId }: ChatPanelProps) {
 						) : (
 							<div className="space-y-2 text-sm text-(--text-primary)">
 								<p>{msg.content}</p>
-								{msg.recommendation && <RecommendationCard rec={msg.recommendation} />}
+						{msg.recommendation && msg.recommendation.bestTimeSlot && (
+							<RecommendationCard rec={msg.recommendation} />
+						)}
 							</div>
 						)}
 					</div>
@@ -189,10 +191,12 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 	return (
 		<div className="space-y-2 rounded-xl bg-(--bg-muted) p-3 text-xs">
 			{/* 추천 시간 */}
-			<p className="flex items-center gap-1 text-(--text-secondary)">
-				<Clock className="h-3 w-3" />
-				추천 시간: {rec.bestTimeSlot.start}~{rec.bestTimeSlot.end} — {rec.bestTimeSlot.reason}
-			</p>
+			{rec.bestTimeSlot && (
+				<p className="flex items-center gap-1 text-(--text-secondary)">
+					<Clock className="h-3 w-3" />
+					추천 시간: {rec.bestTimeSlot.start}~{rec.bestTimeSlot.end} — {rec.bestTimeSlot.reason}
+				</p>
+			)}
 
 			{/* 활동 */}
 			{rec.activities.length > 0 && (
