@@ -1,12 +1,7 @@
-import { Cloud, CloudRain, CloudSun, Sun } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { CloudRain } from "lucide-react";
 import type { Weather } from "shared";
-
-const SKY_ICON: Record<string, LucideIcon> = {
-	맑음: Sun,
-	구름많음: CloudSun,
-	흐림: Cloud,
-};
+import { getWeatherLottie, isNightTime } from "../lib/weather";
 
 const WBGT_COLOR: Record<string, string> = {
 	안전: "text-(--color-success)",
@@ -16,14 +11,29 @@ const WBGT_COLOR: Record<string, string> = {
 	매우위험: "text-red-700",
 };
 
-export function WeatherCard({ data }: { data: Weather }) {
-	const SkyIcon = SKY_ICON[data.sky] ?? CloudSun;
+interface WeatherCardProps {
+	data: Weather;
+	lat: number;
+	lng: number;
+}
+
+export function WeatherCard({ data, lat, lng }: WeatherCardProps) {
+	const isNight = isNightTime(lat, lng);
+	const lottieFile = getWeatherLottie(data.sky, data.precipitationType, isNight);
 
 	return (
-		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
+		<div className="relative overflow-hidden rounded-2xl bg-(--bg-card) p-5 shadow-sm">
+			{/* 배경 Lottie */}
+			<div className="pointer-events-none absolute -right-4 -top-4 opacity-30">
+				<DotLottieReact
+					src={`/lottie/${lottieFile}`}
+					loop
+					autoplay
+					style={{ width: 120, height: 120 }}
+				/>
+			</div>
 			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">날씨</h3>
-			<div className="mb-3 flex items-center gap-3">
-				<SkyIcon className="h-8 w-8 text-(--color-brand)" />
+			<div className="mb-3 flex items-center justify-between">
 				<span className="text-2xl font-bold">{data.temperature}℃</span>
 				{data.precipitationType !== "없음" && (
 					<span className="flex items-center gap-1 text-sm text-(--color-info)">

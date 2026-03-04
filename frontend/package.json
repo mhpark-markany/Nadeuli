@@ -9,16 +9,19 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@lottiefiles/dotlottie-react": "^0.18.3",
 		"framer-motion": "^12.34.5",
 		"lucide-react": "^0.576.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"shared": "0.0.1"
+		"shared": "0.0.1",
+		"suncalc": "^1.9.0"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/react": "^19.0.0",
 		"@types/react-dom": "^19.0.0",
+		"@types/suncalc": "^1.9.2",
 		"@vitejs/plugin-react": "^4.3.0",
 		"tailwindcss": "^4.0.0",
 		"typescript": "^5.7.0",

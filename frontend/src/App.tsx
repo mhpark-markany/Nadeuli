@@ -124,7 +124,7 @@ export function App() {
 					{/* 대기질 + 날씨 */}
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<AirQualityCard data={data.airQuality} />
-						<WeatherCard data={data.weather} />
+						<WeatherCard data={data.weather} lat={geo.lat ?? 0} lng={geo.lng ?? 0} />
 					</div>
 
 					{/* AI 채팅 */}
