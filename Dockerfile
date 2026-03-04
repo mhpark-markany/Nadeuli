@@ -7,7 +7,7 @@ COPY frontend/package.json frontend/
 RUN yarn install --frozen-lockfile
 COPY shared/ shared/
 COPY backend/ backend/
-RUN yarn workspace shared build && yarn workspace backend build
+RUN yarn workspace shared build && yarn workspace backend prisma generate && yarn workspace backend build
 
 FROM node:22-slim
 WORKDIR /app
