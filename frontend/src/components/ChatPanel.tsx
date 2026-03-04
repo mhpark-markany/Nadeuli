@@ -3,9 +3,10 @@ import {
 	Building2,
 	Clock,
 	MessageCircle,
+	Trash2,
 	TreeDeciduous,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AIRecommendation } from "shared";
 import { askAI } from "../lib/api";
 
@@ -21,12 +22,36 @@ interface ChatPanelProps {
 	lng: number;
 }
 
+const STORAGE_KEY = "nadeuli_chat_history";
+
+function loadMessages(): ChatMessage[] {
+	try {
+		const saved = localStorage.getItem(STORAGE_KEY);
+		return saved ? (JSON.parse(saved) as ChatMessage[]) : [];
+	} catch {
+		return [];
+	}
+}
+
+function saveMessages(messages: ChatMessage[]) {
+	localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+}
+
 export function ChatPanel({ lat, lng }: ChatPanelProps) {
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
+	const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
 	const [input, setInput] = useState("");
 	const [loading, setLoading] = useState(false);
 	const scrollRef = useRef<HTMLDivElement>(null);
-	const nextId = useRef(0);
+	const nextId = useRef(messages.length > 0 ? Math.max(...messages.map((m) => m.id)) + 1 : 0);
+
+	useEffect(() => {
+		saveMessages(messages);
+	}, [messages]);
+
+	const clearHistory = () => {
+		setMessages([]);
+		nextId.current = 0;
+	};
 
 	const send = async (query?: string) => {
 		const q = (query ?? input).trim();
@@ -63,18 +88,32 @@ export function ChatPanel({ lat, lng }: ChatPanelProps) {
 
 	return (
 		<div className="rounded-2xl bg-(--bg-card) shadow-sm">
-			<div className="border-b border-(--border-default) px-5 py-3">
+			<div className="flex items-center justify-between border-b border-(--border-default) px-5 py-3">
 				<h3 className="flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
 					<MessageCircle className="h-4 w-4" />
 					AI에게 물어보기
 				</h3>
+				{messages.length > 0 && (
+					<button
+						type="button"
+						onClick={clearHistory}
+						className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-(--text-muted) transition-colors hover:bg-(--bg-muted) hover:text-(--color-error)"
+						title="대화 기록 삭제"
+					>
+						<Trash2 className="h-3.5 w-3.5" />
+					</button>
+				)}
 			</div>
 
 			{/* 메시지 영역 */}
 			<div ref={scrollRef} className="min-h-32 max-h-80 space-y-3 overflow-y-auto px-5 py-4">
 				{messages.length === 0 && (
 					<div className="flex h-full flex-col justify-end gap-2">
-						{["오늘 야외 활동하기 좋은 시간대는?", "지금 공원 산책해도 괜찮을까?", "오늘 미세먼지 주의할 점 있어?"].map((q) => (
+						{[
+							"오늘 야외 활동하기 좋은 시간대는?",
+							"지금 공원 산책해도 괜찮을까?",
+							"오늘 미세먼지 주의할 점 있어?",
+						].map((q) => (
 							<button
 								key={q}
 								type="button"
