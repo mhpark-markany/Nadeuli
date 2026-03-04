@@ -1,17 +1,11 @@
-import {
-	Building2,
-	CloudSun,
-	MapPin,
-	Monitor,
-	Moon,
-	Sun,
-} from "lucide-react";
+import { CloudSun, MapPin } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { DashboardData, Festival, Place } from "shared";
 import { AirQualityCard } from "./components/AirQualityCard";
 import { ChatPanel } from "./components/ChatPanel";
 import { FestivalSection } from "./components/FestivalSection";
 import { HourlyTimeline } from "./components/HourlyTimeline";
+import { LoginButton } from "./components/LoginButton";
 import { PlaceSection } from "./components/PlaceSection";
 import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
@@ -71,6 +65,7 @@ export function App() {
 							{address}
 						</span>
 					)}
+					<LoginButton />
 					<select
 						value={theme}
 						onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
@@ -139,7 +134,7 @@ export function App() {
 					)}
 
 					{/* 주변 행사 */}
-				{festivals.length > 0 && <FestivalSection festivals={festivals} />}
+					{festivals.length > 0 && <FestivalSection festivals={festivals} />}
 				</div>
 			)}
 		</div>

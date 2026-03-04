@@ -10,6 +10,7 @@ import { geocodeRoute } from "./routes/geocode.js";
 import { lifeIndexRoute } from "./routes/life-index.js";
 import { placesRoute } from "./routes/places.js";
 import { scoreRoute } from "./routes/score.js";
+import { settings } from "./routes/settings.js";
 import { weatherRoute } from "./routes/weather.js";
 
 const app = new Hono();
@@ -25,6 +26,7 @@ app.route("/api/festivals", festivalsRoute);
 app.route("/api/ask", askRoute);
 app.route("/api/geocode", geocodeRoute);
 app.route("/api/auth", auth);
+app.route("/api/settings", settings);
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
