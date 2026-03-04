@@ -38,7 +38,7 @@ export function useGeolocation(): GeoState & { retry: () => void } {
 					loading: false,
 				});
 			},
-			{ enableHighAccuracy: false, timeout: 10000 },
+			{ enableHighAccuracy: false, timeout: 10000, maximumAge: 300_000 },
 		);
 	}, []);
 
