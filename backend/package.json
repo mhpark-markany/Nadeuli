@@ -6,6 +6,7 @@
 	"scripts": {
 		"dev": "tsx watch --env-file=../.env src/index.ts",
 		"build": "prisma generate && tsc -p tsconfig.json",
+		"migrate:deploy": "prisma migrate deploy",
 		"start": "node dist/index.js"
 	},
 	"dependencies": {
