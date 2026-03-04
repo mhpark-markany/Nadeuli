@@ -242,7 +242,7 @@ async function sendWithRetry(
 export async function askGemini(input: AskGeminiInput): Promise<AIRecommendation> {
 	const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 	const model = genAI.getGenerativeModel({
-		model: "gemini-3-flash-preview",
+		model: "gemini-2.0-flash",
 		systemInstruction: SYSTEM_INSTRUCTION,
 		tools: TOOLS,
 	});

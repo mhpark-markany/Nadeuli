@@ -20,33 +20,43 @@ interface ChatMessage {
 interface ChatPanelProps {
 	lat: number;
 	lng: number;
+	userId?: string;
 }
 
-const STORAGE_KEY = "nadeuli_chat_history";
+function getStorageKey(userId?: string): string {
+	return userId ? `nadeuli_chat_${userId}` : "nadeuli_chat_guest";
+}
 
-function loadMessages(): ChatMessage[] {
+function loadMessages(userId?: string): ChatMessage[] {
 	try {
-		const saved = localStorage.getItem(STORAGE_KEY);
+		const saved = localStorage.getItem(getStorageKey(userId));
 		return saved ? (JSON.parse(saved) as ChatMessage[]) : [];
 	} catch {
 		return [];
 	}
 }
 
-function saveMessages(messages: ChatMessage[]) {
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+function saveMessages(messages: ChatMessage[], userId?: string) {
+	localStorage.setItem(getStorageKey(userId), JSON.stringify(messages));
 }
 
-export function ChatPanel({ lat, lng }: ChatPanelProps) {
-	const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
+export function ChatPanel({ lat, lng, userId }: ChatPanelProps) {
+	const [messages, setMessages] = useState<ChatMessage[]>(() => loadMessages(userId));
 	const [input, setInput] = useState("");
 	const [loading, setLoading] = useState(false);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const nextId = useRef(messages.length > 0 ? Math.max(...messages.map((m) => m.id)) + 1 : 0);
 
+	// userId 변경 시 메시지 다시 로드
 	useEffect(() => {
-		saveMessages(messages);
-	}, [messages]);
+		const loaded = loadMessages(userId);
+		setMessages(loaded);
+		nextId.current = loaded.length > 0 ? Math.max(...loaded.map((m) => m.id)) + 1 : 0;
+	}, [userId]);
+
+	useEffect(() => {
+		saveMessages(messages, userId);
+	}, [messages, userId]);
 
 	const clearHistory = () => {
 		setMessages([]);

@@ -71,6 +71,15 @@ export function useAuth() {
 	}, []);
 
 	const logout = useCallback(() => {
+		// 사용자별 대화 기록 삭제
+		const savedUser = localStorage.getItem("user");
+		if (savedUser) {
+			const user = JSON.parse(savedUser) as AuthUser;
+			localStorage.removeItem(`nadeuli_chat_${user.id}`);
+		}
+		// 비로그인 대화 기록도 삭제
+		localStorage.removeItem("nadeuli_chat_guest");
+
 		clearTokens();
 		localStorage.removeItem("user");
 		setState({ user: null, isLoading: false, isAuthenticated: false });

@@ -9,6 +9,7 @@ import { LoginButton } from "./components/LoginButton";
 import { PlaceSection } from "./components/PlaceSection";
 import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
+import { useAuth } from "./hooks/useAuth";
 import { useGeolocation } from "./hooks/useGeolocation";
 import { useTheme } from "./hooks/useTheme";
 import { fetchAddress, fetchDashboard, fetchFestivals, fetchPlaces } from "./lib/api";
@@ -16,6 +17,7 @@ import { fetchAddress, fetchDashboard, fetchFestivals, fetchPlaces } from "./lib
 export function App() {
 	const geo = useGeolocation();
 	const { theme, setTheme } = useTheme();
+	const { user } = useAuth();
 	const [data, setData] = useState<DashboardData | null>(null);
 	const [places, setPlaces] = useState<Place[]>([]);
 	const [festivals, setFestivals] = useState<Festival[]>([]);
@@ -123,7 +125,9 @@ export function App() {
 					</div>
 
 					{/* AI 채팅 */}
-					{geo.lat != null && geo.lng != null && <ChatPanel lat={geo.lat} lng={geo.lng} />}
+					{geo.lat != null && geo.lng != null && (
+						<ChatPanel lat={geo.lat} lng={geo.lng} userId={user?.id} />
+					)}
 
 					{/* 시간대별 전망 */}
 					<HourlyTimeline hours={data.score.hourlyForecast} lat={geo.lat ?? 0} lng={geo.lng ?? 0} />
