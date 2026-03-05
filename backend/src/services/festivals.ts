@@ -1,9 +1,10 @@
 import type { Festival } from "shared";
-import { buildDataGoKrUrl } from "../lib/api-url.js";
+import { buildDataGoKrUrl, fetchJsonSafe } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
 import { nowKST } from "../lib/kst.js";
 
 const BASE_URL = "http://apis.data.go.kr/B551011/KorService2/searchFestival2";
+const DETAIL_INTRO_URL = "http://apis.data.go.kr/B551011/KorService2/detailIntro2";
 
 interface FestivalApiItem {
 	contentid: string;
@@ -15,6 +16,7 @@ interface FestivalApiItem {
 	tel?: string;
 	eventstartdate: string;
 	eventenddate: string;
+	firstimage?: string;
 }
 
 interface FestivalApiResponse {
@@ -39,6 +41,54 @@ function calcDistance(lat1: number, lng1: number, lat2: number, lng2: number): n
 		Math.sin(dLat / 2) ** 2 +
 		Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
 	return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+interface DetailIntroResponse {
+	response: {
+		header: { resultCode: string };
+		body: {
+			items: { item: Array<{ usetimefestival?: string }> } | "";
+		};
+	};
+}
+
+async function fetchFee(contentId: string): Promise<string | undefined> {
+	try {
+		const url = buildDataGoKrUrl(DETAIL_INTRO_URL, env.TOUR_API_KEY, {
+			MobileOS: "ETC",
+			MobileApp: "Nadeuli",
+			_type: "json",
+			contentId,
+			contentTypeId: "15",
+		});
+		const res = await fetch(url);
+		const data = await fetchJsonSafe<DetailIntroResponse>(res);
+		if (data.response.header.resultCode !== "0000") return undefined;
+		const items = data.response.body.items;
+		if (!items || typeof items === "string") return undefined;
+		const raw = items.item[0]?.usetimefestival;
+		return raw ? raw.replace(/<[^>]*>/g, "").trim() : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+function toFestival(item: FestivalApiItem): Omit<Festival, "fee"> {
+	return {
+		id: item.contentid,
+		title: item.title,
+		address: [item.addr1, item.addr2].filter(Boolean).join(" "),
+		lat: Number(item.mapy) || 0,
+		lng: Number(item.mapx) || 0,
+		startDate: item.eventstartdate,
+		endDate: item.eventenddate,
+		image: item.firstimage || undefined,
+	};
+}
+
+async function attachFees(festivals: Festival[]): Promise<Festival[]> {
+	const fees = await Promise.all(festivals.map((f) => fetchFee(f.id)));
+	return festivals.map((f, i) => (fees[i] ? { ...f, fee: fees[i] } : f));
 }
 
 export interface FetchFestivalsOptions {
@@ -71,7 +121,7 @@ export async function fetchFestivals(options: FetchFestivalsOptions = {}): Promi
 
 	const url = buildDataGoKrUrl(BASE_URL, env.TOUR_API_KEY, params);
 	const res = await fetch(url);
-	const data = (await res.json()) as FestivalApiResponse;
+	const data = await fetchJsonSafe<FestivalApiResponse>(res);
 
 	if (data.response.header.resultCode !== "0000") return [];
 	const items = data.response.body.items;
@@ -81,35 +131,19 @@ export async function fetchFestivals(options: FetchFestivalsOptions = {}): Promi
 
 	// areaCode로 조회한 경우 거리 필터링 없이 반환
 	if (areaCode || lat == null || lng == null) {
-		return itemArray.slice(0, limit).map((item) => ({
-			id: item.contentid,
-			title: item.title,
-			address: [item.addr1, item.addr2].filter(Boolean).join(" "),
-			lat: Number(item.mapy) || 0,
-			lng: Number(item.mapx) || 0,
-			startDate: item.eventstartdate,
-			endDate: item.eventenddate,
-		}));
+		const list = itemArray.slice(0, limit).map(toFestival);
+		return attachFees(list);
 	}
 
 	// 좌표 기반 조회: 거리 계산 + 필터링
-	return itemArray
+	const list = itemArray
 		.map((item) => {
-			const itemLat = Number(item.mapy) || 0;
-			const itemLng = Number(item.mapx) || 0;
-			const distance = calcDistance(lat, lng, itemLat, itemLng);
-			return {
-				id: item.contentid,
-				title: item.title,
-				address: [item.addr1, item.addr2].filter(Boolean).join(" "),
-				lat: itemLat,
-				lng: itemLng,
-				startDate: item.eventstartdate,
-				endDate: item.eventenddate,
-				distance: Math.round(distance * 10) / 10,
-			};
+			const f = toFestival(item);
+			const distance = calcDistance(lat, lng, f.lat, f.lng);
+			return { ...f, distance: Math.round(distance * 10) / 10 };
 		})
 		.filter((f) => f.distance <= radiusKm)
 		.sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0))
 		.slice(0, limit);
+	return attachFees(list);
 }

@@ -117,6 +117,8 @@ export interface Festival {
 	startDate: string;
 	endDate: string;
 	distance?: number; // km
+	image?: string; // 대표 이미지 URL
+	fee?: string; // 이용 요금 (예: "무료", "성인 5,000원")
 }
 
 // ── AI 추천 (Gemini) ──

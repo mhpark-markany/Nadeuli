@@ -6,6 +6,11 @@ function formatDate(dateStr: string): string {
 	return `${dateStr.slice(4, 6)}.${dateStr.slice(6, 8)}`;
 }
 
+function isFree(fee?: string): boolean {
+	if (!fee) return false;
+	return /무료/.test(fee) && !/유료/.test(fee);
+}
+
 export function FestivalCard({ festival }: { festival: Festival }) {
 	const today = new Date();
 	const start = new Date(
@@ -15,17 +20,32 @@ export function FestivalCard({ festival }: { festival: Festival }) {
 
 	return (
 		<div className="flex items-start gap-3 rounded-xl bg-(--bg-card) p-4 shadow-sm">
-			<PartyPopper className="h-5 w-5 shrink-0 text-(--color-brand)" />
+			{festival.image ? (
+				<img
+					src={festival.image}
+					alt={festival.title}
+					className="h-14 w-14 shrink-0 rounded-lg object-cover"
+				/>
+			) : (
+				<PartyPopper className="h-5 w-5 shrink-0 text-(--color-brand)" />
+			)}
 			<div className="min-w-0 flex-1">
 				<h4 className="truncate text-sm font-medium">{festival.title}</h4>
 				<p className="mt-0.5 truncate text-xs text-(--text-muted)">{festival.address}</p>
-				<div className="mt-1 flex items-center gap-2 text-xs">
+				<div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
 					<span className="text-(--text-secondary)">
 						{formatDate(festival.startDate)} ~ {formatDate(festival.endDate)}
 					</span>
 					{isOngoing && (
 						<span className="rounded-full bg-green-500/10 px-1.5 py-0.5 text-(--color-success)">
 							진행중
+						</span>
+					)}
+					{festival.fee && (
+						<span
+							className={`rounded-full px-1.5 py-0.5 ${isFree(festival.fee) ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" : "bg-orange-500/10 text-orange-600 dark:text-orange-400"}`}
+						>
+							{isFree(festival.fee) ? "무료" : "유료"}
 						</span>
 					)}
 					{festival.distance != null && (

@@ -16,7 +16,7 @@ export function FestivalSection({ festivals }: { festivals: Festival[] }) {
 				<PartyPopper className="h-4 w-4" />
 				주변 행사
 			</h3>
-			<div className="max-h-80 space-y-2 overflow-y-auto scrollbar-gutter-stable">
+			<div className="space-y-2">
 				{festivals.slice(0, displayCount).map((f) => (
 					<FestivalCard key={f.id} festival={f} />
 				))}
