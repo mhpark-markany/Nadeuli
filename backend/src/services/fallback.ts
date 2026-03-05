@@ -26,7 +26,7 @@ export function generateFallback(input: FallbackInput): AIRecommendation {
 		reason: indoorOnly
 			? "현재 대기질/기온 조건상 실내 활동을 권장합니다"
 			: "현재 조건에 적합한 장소입니다",
-		placeId: p.contentId,
+		placeName: p.title,
 	}));
 
 	const cautions: string[] = [];
@@ -40,11 +40,25 @@ export function generateFallback(input: FallbackInput): AIRecommendation {
 
 	return {
 		summary,
-		bestTimeSlot: { start: "10:00", end: "12:00", reason: "일반적으로 오전이 대기질이 양호합니다" },
+		weather: {
+			temp: weather.temperature,
+			feelsLike: weather.feelsLike,
+			sky: weather.sky,
+			humidity: weather.humidity,
+			wbgt: weather.wbgt,
+			description: `기온 ${weather.temperature}°C, 체감 ${weather.feelsLike}°C, ${weather.sky}`,
+		},
+		airQuality: {
+			pm25: air.pm25Value,
+			pm10: air.pm10Value,
+			caiGrade: air.caiGrade,
+			description: `통합대기지수 ${air.cai} (${air.caiGrade})`,
+		},
+		timeSlots: [{ start: "10:00", end: "12:00", reason: "일반적으로 오전이 대기질이 양호합니다" }],
 		activities,
 		cautions,
 		healthWarning: blocked
 			? "질병관리청 가이드라인에 따라 현재 대기질 수준에서는 실내 활동을 권장합니다"
-			: undefined,
+			: null,
 	};
 }

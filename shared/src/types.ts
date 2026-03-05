@@ -110,18 +110,48 @@ export interface Festival {
 
 // ── AI 추천 (Gemini) ──
 
-export interface AIRecommendation {
-	summary: string;
-	bestTimeSlot: { start: string; end: string; reason: string } | null;
-	activities: Array<{
-		name: string;
-		type: "outdoor" | "indoor";
-		reason: string;
-		placeId?: string;
-	}>;
-	cautions: string[];
-	healthWarning?: string;
-}
+import { z } from "zod";
+
+export const aiRecommendationSchema = z.object({
+	summary: z.string(),
+	weather: z
+		.object({
+			temp: z.number(),
+			feelsLike: z.number(),
+			sky: z.string(),
+			humidity: z.number(),
+			wbgt: z.number().nullable(),
+			description: z.string(),
+		})
+		.nullable(),
+	airQuality: z
+		.object({
+			pm25: z.number(),
+			pm10: z.number(),
+			caiGrade: z.string(),
+			description: z.string(),
+		})
+		.nullable(),
+	timeSlots: z.array(
+		z.object({
+			start: z.string(),
+			end: z.string(),
+			reason: z.string(),
+		}),
+	),
+	activities: z.array(
+		z.object({
+			name: z.string(),
+			type: z.enum(["outdoor", "indoor"]),
+			reason: z.string(),
+			placeName: z.string().nullable(),
+		}),
+	),
+	cautions: z.array(z.string()),
+	healthWarning: z.string().nullable(),
+});
+
+export type AIRecommendation = z.infer<typeof aiRecommendationSchema>;
 
 export interface AskRequest {
 	question: string;

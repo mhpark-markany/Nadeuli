@@ -2,9 +2,11 @@ import {
 	AlertTriangle,
 	Building2,
 	Clock,
+	Cloud,
 	MessageCircle,
 	Trash2,
 	TreeDeciduous,
+	Wind,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { AIRecommendation } from "shared";
@@ -147,9 +149,7 @@ export function ChatPanel({ lat, lng, userId }: ChatPanelProps) {
 						) : (
 							<div className="space-y-2 text-sm text-(--text-primary)">
 								<p>{msg.content}</p>
-						{msg.recommendation && msg.recommendation.bestTimeSlot && (
-							<RecommendationCard rec={msg.recommendation} />
-						)}
+								{msg.recommendation && <RecommendationCard rec={msg.recommendation} />}
 							</div>
 						)}
 					</div>
@@ -192,12 +192,35 @@ export function ChatPanel({ lat, lng, userId }: ChatPanelProps) {
 function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 	return (
 		<div className="space-y-2 rounded-xl bg-(--bg-muted) p-3 text-xs">
-			{/* 추천 시간 */}
-			{rec.bestTimeSlot && (
+			{/* 날씨 */}
+			{rec.weather && (
 				<p className="flex items-center gap-1 text-(--text-secondary)">
-					<Clock className="h-3 w-3" />
-					추천 시간: {rec.bestTimeSlot.start}~{rec.bestTimeSlot.end} — {rec.bestTimeSlot.reason}
+					<Cloud className="h-3 w-3" />
+					{rec.weather.description}
 				</p>
+			)}
+
+			{/* 대기질 */}
+			{rec.airQuality && (
+				<p className="flex items-center gap-1 text-(--text-secondary)">
+					<Wind className="h-3 w-3" />
+					{rec.airQuality.description}
+				</p>
+			)}
+
+			{/* 추천 시간대 */}
+			{rec.timeSlots.length > 0 && (
+				<div className="space-y-1">
+					{rec.timeSlots.map((slot) => (
+						<p
+							key={`${slot.start}-${slot.end}`}
+							className="flex items-center gap-1 text-(--text-secondary)"
+						>
+							<Clock className="h-3 w-3" />
+							{slot.start}~{slot.end} — {slot.reason}
+						</p>
+					))}
+				</div>
 			)}
 
 			{/* 활동 */}
