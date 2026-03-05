@@ -15,7 +15,7 @@ export function useGeolocation(): GeoState & { retry: () => void } {
 		loading: true,
 	});
 
-	const locate = useCallback(() => {
+	const locate = useCallback((retries = 2) => {
 		if (!navigator.geolocation) {
 			setState({ lat: null, lng: null, error: "Geolocation 미지원", loading: false });
 			return;
@@ -31,6 +31,11 @@ export function useGeolocation(): GeoState & { retry: () => void } {
 				});
 			},
 			(err) => {
+				// PERMISSION_DENIED(1)이 아니고 재시도 횟수가 남았으면 재시도
+				if (err.code !== 1 && retries > 0) {
+					locate(retries - 1);
+					return;
+				}
 				setState({
 					lat: null,
 					lng: null,
