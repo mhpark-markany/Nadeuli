@@ -17,7 +17,7 @@ export function calculateOutdoorScore(input: ScoreInput): OutdoorScore {
 
 	// [1단계] 개별 점수 산출
 	const airScore = caiToScore(air.cai);
-	const weatherScore = calcWeatherScore(weather);
+	const weatherScore = calcWeatherScore(weather, hourlyWeather);
 	const uvScore = calcUVScore(lifeIndex.uvIndex);
 	const seasonalScore = calcSeasonalScore(lifeIndex);
 
@@ -86,7 +86,7 @@ function caiToScore(cai: number): number {
 
 // ── 기상 점수 (기온 쾌적도 + 강수 + 풍속) ──
 
-function calcWeatherScore(w: Weather): number {
+function calcWeatherScore(w: Weather, hourlyWeather: HourlyWeather[]): number {
 	let score = 100;
 
 	// 기온 쾌적도 (18~25°C 최적)
@@ -100,6 +100,11 @@ function calcWeatherScore(w: Weather): number {
 	// 강수
 	if (w.precipitationType !== "없음") score -= 30;
 	if (w.precipitation > 5) score -= 20;
+
+	// 오늘 강수확률 최대값 반영 (현재 안 오더라도 올 예정이면 감점)
+	const maxPop = hourlyWeather.reduce((max, h) => Math.max(max, h.pop), 0);
+	if (maxPop >= 70) score -= 20;
+	else if (maxPop >= 50) score -= 10;
 
 	// 풍속 (10m/s 이상 감점)
 	if (w.windSpeed > 14) score -= 30;

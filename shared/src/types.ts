@@ -67,6 +67,17 @@ export interface OutdoorScore {
 	hourlyForecast: HourlyScore[];
 }
 
+// ── 일별 예보 (주간예보용) ──
+
+export interface DailyForecast {
+	date: string; // YYYYMMDD
+	minTemp: number;
+	maxTemp: number;
+	sky: Sky;
+	precipitationType: PrecipitationType;
+	pop: number; // 강수확률 %
+}
+
 // ── 사용자 프로필 ──
 
 export type HealthCondition = "asthma" | "allergy" | "heart" | "elderly" | "respiratory";
@@ -180,4 +191,5 @@ export interface DashboardData {
 	weather: Weather;
 	lifeIndex: LifeIndex;
 	score: OutdoorScore;
+	weeklyForecast?: DailyForecast[];
 }

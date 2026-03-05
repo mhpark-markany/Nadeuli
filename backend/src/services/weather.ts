@@ -1,9 +1,11 @@
-import type { PrecipitationType, WbgtGrade, Weather } from "shared";
+import type { DailyForecast, PrecipitationType, Sky, WbgtGrade, Weather } from "shared";
 import { buildDataGoKrUrl } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
 import { nowKST } from "../lib/kst.js";
+import { toMidRegIds } from "./geo.js";
 
 const BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0";
+const MID_BASE_URL = "http://apis.data.go.kr/1360000/MidFcstInfoService";
 
 // ── 위경도 → 기상청 격자 변환 ──
 
@@ -64,19 +66,32 @@ export async function fetchWeather(lat: number, lng: number): Promise<Weather> {
 	const baseDate = formatDate(now);
 	const baseTime = formatTime(now);
 
-	const url = buildDataGoKrUrl(`${BASE_URL}/getUltraSrtNcst`, env.KMA_API_KEY, {
-		dataType: "JSON",
-		numOfRows: "10",
-		base_date: baseDate,
-		base_time: baseTime,
-		nx: String(nx),
-		ny: String(ny),
-	});
+	const gridParams = { nx: String(nx), ny: String(ny) };
 
-	const res = await fetch(url);
-	const data = (await res.json()) as KmaResponse;
-	const items = data.response.body.items.item;
+	// 초단기실황 + 초단기예보 병렬 호출
+	const [ncstRes, ultraFcstRes] = await Promise.all([
+		fetch(
+			buildDataGoKrUrl(`${BASE_URL}/getUltraSrtNcst`, env.KMA_API_KEY, {
+				dataType: "JSON",
+				numOfRows: "10",
+				base_date: baseDate,
+				base_time: baseTime,
+				...gridParams,
+			}),
+		),
+		fetch(
+			buildDataGoKrUrl(`${BASE_URL}/getUltraSrtFcst`, env.KMA_API_KEY, {
+				dataType: "JSON",
+				numOfRows: "60",
+				...getUltraFcstBase(now),
+				...gridParams,
+			}),
+		),
+	]);
 
+	// 초단기실황 파싱
+	const ncstData = (await ncstRes.json()) as KmaResponse;
+	const items = ncstData.response.body.items.item;
 	const map = new Map<string, number>();
 	for (const item of items) {
 		map.set(item.category, Number(item.obsrValue));
@@ -88,6 +103,23 @@ export async function fetchWeather(lat: number, lng: number): Promise<Weather> {
 	const precipitation = map.get("RN1") ?? 0;
 	const pty = map.get("PTY") ?? 0;
 
+	// 초단기예보에서 가장 가까운 시각의 SKY/PTY 보강
+	let sky: Sky = "맑음";
+	let fcstPty = pty;
+	try {
+		const ultraData = (await ultraFcstRes.json()) as FcstResponse;
+		if (ultraData.response.header.resultCode === "00") {
+			const nearest = findNearestFcst(ultraData.response.body.items.item);
+			if (nearest.sky != null) sky = skyCodeToLabel(nearest.sky);
+			if (nearest.pty != null) fcstPty = nearest.pty;
+		}
+	} catch {
+		/* 초단기예보 실패 시 실황만 사용 */
+	}
+
+	// 실황 PTY > 0이면 실황 우선, 아니면 예보 사용
+	const finalPty = pty > 0 ? pty : fcstPty;
+
 	const feelsLike = calcFeelsLike(temp, humidity, windSpeed);
 	const wbgt = calcWBGT(temp, humidity);
 
@@ -96,8 +128,8 @@ export async function fetchWeather(lat: number, lng: number): Promise<Weather> {
 		humidity,
 		windSpeed,
 		precipitation,
-		sky: "맑음", // 초단기실황에는 SKY 없음 — 단기예보에서 보강 가능
-		precipitationType: ptyToType(pty),
+		sky,
+		precipitationType: ptyToType(finalPty),
 		feelsLike: Math.round(feelsLike * 10) / 10,
 		wbgt: Math.round(wbgt * 10) / 10,
 		wbgtGrade: wbgtToGrade(wbgt),
@@ -159,6 +191,40 @@ function ptyToType(pty: number): PrecipitationType {
 	if (pty === 2) return "비/눈";
 	if (pty === 3) return "눈";
 	return "없음";
+}
+
+function skyCodeToLabel(code: number): Sky {
+	if (code === 3) return "구름많음";
+	if (code === 4) return "흐림";
+	return "맑음";
+}
+
+// 초단기예보: 매시 30분 발표 (45분에 API 제공)
+function getUltraFcstBase(now: Date): { base_date: string; base_time: string } {
+	let h = now.getHours();
+	if (now.getMinutes() < 45) h -= 1;
+	if (h < 0) {
+		const yesterday = new Date(now.getTime() - 86400000);
+		return { base_date: formatDate(yesterday), base_time: "2330" };
+	}
+	return { base_date: formatDate(now), base_time: `${String(h).padStart(2, "0")}30` };
+}
+
+// 초단기예보 응답에서 가장 가까운 시각의 SKY/PTY 추출
+function findNearestFcst(items: FcstItem[]): { sky: number | null; pty: number | null } {
+	// 가장 이른 fcstTime 찾기
+	let earliest = "9999";
+	for (const item of items) {
+		if (item.fcstTime < earliest) earliest = item.fcstTime;
+	}
+	let sky: number | null = null;
+	let pty: number | null = null;
+	for (const item of items) {
+		if (item.fcstTime !== earliest) continue;
+		if (item.category === "SKY") sky = Number(item.fcstValue);
+		if (item.category === "PTY") pty = Number(item.fcstValue);
+	}
+	return { sky, pty };
 }
 
 function formatDate(d: Date): string {
@@ -242,7 +308,7 @@ export async function fetchHourlyForecast(lat: number, lng: number): Promise<Hou
 	const tomorrow = formatDate(new Date(now.getTime() + 86400000));
 	const currentHour = now.getHours();
 
-	// 시간대별로 그룹핑 (현재시각 이후 ~ 12시간, 내일 포함)
+	// 시간대별로 그룹핑 (현재시각 이후, 오늘 남은 시간 전체 + 내일)
 	const hourMap = new Map<number, Partial<HourlyWeather>>();
 	for (const item of items) {
 		const isToday = item.fcstDate === today;
@@ -276,6 +342,172 @@ export async function fetchHourlyForecast(lat: number, lng: number): Promise<Hou
 
 	return [...hourMap.values()]
 		.filter((h): h is HourlyWeather => h.temp != null)
-		.sort((a, b) => a.hour - b.hour)
-		.slice(0, 12);
+		.sort((a, b) => a.hour - b.hour);
+}
+
+// ── 주간예보 (단기예보 D+0~2 + 중기예보 D+3~6) ──
+
+interface MidResponse {
+	response: {
+		header: { resultCode: string };
+		body: { items: { item: Record<string, unknown>[] } };
+	};
+}
+
+export async function fetchWeeklyForecast(lat: number, lng: number): Promise<DailyForecast[]> {
+	const now = nowKST();
+	const { nx, ny } = toGrid(lat, lng);
+	const { landRegId, taRegId } = toMidRegIds(lat, lng);
+	const tmFc = getMidFcstTmFc(now);
+
+	const [shortDays, midTaRes, midLandRes] = await Promise.all([
+		fetchShortTermDaily(nx, ny, now),
+		fetch(
+			buildDataGoKrUrl(`${MID_BASE_URL}/getMidTa`, env.KMA_API_KEY, {
+				dataType: "JSON",
+				numOfRows: "1",
+				regId: taRegId,
+				tmFc,
+			}),
+		),
+		fetch(
+			buildDataGoKrUrl(`${MID_BASE_URL}/getMidLandFcst`, env.KMA_API_KEY, {
+				dataType: "JSON",
+				numOfRows: "1",
+				regId: landRegId,
+				tmFc,
+			}),
+		),
+	]);
+
+	const midDays = parseMidTerm(await midTaRes.json(), await midLandRes.json(), now);
+	return [...shortDays, ...midDays].slice(0, 7);
+}
+
+// 중기예보 발표시각: 06시, 18시
+function getMidFcstTmFc(now: Date): string {
+	const h = now.getHours();
+	const date =
+		h >= 18
+			? formatDate(now)
+			: h >= 6
+				? formatDate(now)
+				: formatDate(new Date(now.getTime() - 86400000));
+	const time = h >= 18 ? "1800" : h >= 6 ? "0600" : "1800";
+	return `${date}${time}`;
+}
+
+// 단기예보 → 일별 집계 (D+0~2)
+async function fetchShortTermDaily(nx: number, ny: number, now: Date): Promise<DailyForecast[]> {
+	const { baseDate, baseTime } = getVilageFcstBase(now);
+	const url = buildDataGoKrUrl(`${BASE_URL}/getVilageFcst`, env.KMA_API_KEY, {
+		dataType: "JSON",
+		numOfRows: "1000",
+		base_date: baseDate,
+		base_time: baseTime,
+		nx: String(nx),
+		ny: String(ny),
+	});
+
+	const res = await fetch(url);
+	const data = (await res.json()) as FcstResponse;
+	if (data.response.header.resultCode !== "00") return [];
+
+	// 날짜별 그룹핑
+	const dayMap = new Map<
+		string,
+		{ temps: number[]; pops: number[]; skys: number[]; ptys: number[] }
+	>();
+	for (const item of data.response.body.items.item) {
+		const d = dayMap.get(item.fcstDate) ?? { temps: [], pops: [], skys: [], ptys: [] };
+		switch (item.category) {
+			case "TMP":
+				d.temps.push(Number(item.fcstValue));
+				break;
+			case "POP":
+				d.pops.push(Number(item.fcstValue));
+				break;
+			case "SKY":
+				d.skys.push(Number(item.fcstValue));
+				break;
+			case "PTY":
+				d.ptys.push(Number(item.fcstValue));
+				break;
+		}
+		dayMap.set(item.fcstDate, d);
+	}
+
+	const today = formatDate(now);
+	return [...dayMap.entries()]
+		.filter(([date]) => date >= today)
+		.sort(([a], [b]) => a.localeCompare(b))
+		.slice(0, 3)
+		.map(([date, d]) => ({
+			date,
+			minTemp: d.temps.length > 0 ? Math.min(...d.temps) : 0,
+			maxTemp: d.temps.length > 0 ? Math.max(...d.temps) : 0,
+			sky: skyCodeToLabel(mode(d.skys) ?? 1),
+			precipitationType: d.ptys.some((p) => p > 0)
+				? ptyToType(mode(d.ptys.filter((p) => p > 0)) ?? 1)
+				: "없음",
+			pop: d.pops.length > 0 ? Math.max(...d.pops) : 0,
+		}));
+}
+
+// 중기예보 파싱 (D+3~6)
+function parseMidTerm(taData: unknown, landData: unknown, now: Date): DailyForecast[] {
+	const result: DailyForecast[] = [];
+	try {
+		const ta = (taData as MidResponse).response.body.items.item[0];
+		const land = (landData as MidResponse).response.body.items.item[0];
+		if (!ta || !land) return [];
+
+		for (let d = 3; d <= 6; d++) {
+			const minTemp = Number(ta[`taMin${d}`] ?? 0);
+			const maxTemp = Number(ta[`taMax${d}`] ?? 0);
+			const pop =
+				d <= 7
+					? Math.max(Number(land[`rnSt${d}Am`] ?? 0), Number(land[`rnSt${d}Pm`] ?? 0))
+					: Number(land[`rnSt${d}`] ?? 0);
+			const wf = String(d <= 7 ? (land[`wf${d}Pm`] ?? "맑음") : (land[`wf${d}`] ?? "맑음"));
+			const { sky, precipitationType } = parseMidWf(wf);
+
+			const date = formatDate(new Date(now.getTime() + d * 86400000));
+			result.push({ date, minTemp, maxTemp, sky, precipitationType, pop });
+		}
+	} catch {
+		/* 중기예보 파싱 실패 시 빈 배열 */
+	}
+	return result;
+}
+
+function parseMidWf(wf: string): { sky: Sky; precipitationType: PrecipitationType } {
+	let sky: Sky = "맑음";
+	let precipitationType: PrecipitationType = "없음";
+
+	if (wf.includes("흐리")) sky = "흐림";
+	else if (wf.includes("구름많")) sky = "구름많음";
+
+	if (wf.includes("비/눈")) precipitationType = "비/눈";
+	else if (wf.includes("눈")) precipitationType = "눈";
+	else if (wf.includes("비") || wf.includes("소나기")) precipitationType = "비";
+
+	return { sky, precipitationType };
+}
+
+// 최빈값
+function mode(arr: number[]): number | null {
+	if (arr.length === 0) return null;
+	const freq = new Map<number, number>();
+	let maxCount = 0;
+	let result = arr[0];
+	for (const v of arr) {
+		const c = (freq.get(v) ?? 0) + 1;
+		freq.set(v, c);
+		if (c > maxCount) {
+			maxCount = c;
+			result = v;
+		}
+	}
+	return result;
 }
