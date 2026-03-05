@@ -1,6 +1,5 @@
 import { MapPin, MapPinOff } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { DashboardData, Festival, Place } from "shared";
+import { useMemo } from "react";
 import RotatingText from "../shared/components/RotatingText";
 import { AirQualityCard } from "./components/AirQualityCard";
 import { ChatPanel } from "./components/ChatPanel";
@@ -12,10 +11,13 @@ import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
 import { WeatherLoader } from "./components/WeatherLoader";
 import { WeeklyForecast } from "./components/WeeklyForecast";
+import { useAddress } from "./hooks/use-address";
+import { useDashboard } from "./hooks/use-dashboard";
+import { useFestivals } from "./hooks/use-festivals";
+import { usePlaces } from "./hooks/use-places";
 import { useAuth } from "./hooks/useAuth";
 import { useGeolocation } from "./hooks/useGeolocation";
 import { useTheme } from "./hooks/useTheme";
-import { fetchAddress, fetchDashboard, fetchFestivals, fetchPlaces } from "./lib/api";
 import { selectTitles } from "./lib/naduri-titles";
 
 const LOADING_TEXTS = [
@@ -42,40 +44,16 @@ export function App() {
 	const geo = useGeolocation();
 	const { theme, setTheme } = useTheme();
 	const { user } = useAuth();
-	const [data, setData] = useState<DashboardData | null>(null);
-	const [places, setPlaces] = useState<Place[]>([]);
-	const [festivals, setFestivals] = useState<Festival[]>([]);
-	const [address, setAddress] = useState<string | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(false);
+	const dashboard = useDashboard(geo.lat, geo.lng);
+	const places = usePlaces(geo.lat, geo.lng);
+	const festivals = useFestivals(geo.lat, geo.lng);
+	const addressQuery = useAddress(geo.lat, geo.lng);
 	const loadingTexts = useMemo(() => shuffle(LOADING_TEXTS), []);
 
-	const load = useCallback(async (lat: number, lng: number) => {
-		setLoading(true);
-		setError(null);
-		try {
-			const [dashboard, placesData, festivalsData, addressData] = await Promise.all([
-				fetchDashboard(lat, lng),
-				fetchPlaces(lat, lng).catch(() => [] as Place[]),
-				fetchFestivals(lat, lng).catch(() => [] as Festival[]),
-				fetchAddress(lat, lng).catch(() => null),
-			]);
-			setData(dashboard);
-			setPlaces(placesData);
-			setFestivals(festivalsData);
-			setAddress(addressData?.dong ?? addressData?.sigungu ?? null);
-		} catch (e) {
-			setError(e instanceof Error ? e.message : "데이터 로드 실패");
-		} finally {
-			setLoading(false);
-		}
-	}, []);
-
-	useEffect(() => {
-		if (geo.lat != null && geo.lng != null) {
-			load(geo.lat, geo.lng);
-		}
-	}, [geo.lat, geo.lng, load]);
+	const data = dashboard.data;
+	const address = addressQuery.data?.dong ?? addressQuery.data?.sigungu ?? null;
+	const loading = geo.loading || dashboard.isLoading;
+	const error = dashboard.error?.message ?? null;
 
 	const titles = useMemo(
 		() => selectTitles(data?.weather, data?.airQuality),
@@ -113,7 +91,7 @@ export function App() {
 			</header>
 
 			{/* 로딩/에러 상태 */}
-			{(geo.loading || loading) && (
+			{loading && (
 				<div
 					className="flex flex-col items-center justify-center py-20"
 					style={{ animation: "fade-in-up 0.5s ease-out" }}
@@ -189,12 +167,14 @@ export function App() {
 					<WeeklyForecast days={data.weeklyForecast ?? []} />
 
 					{/* 추천 장소 */}
-					{places.length > 0 && geo.lat != null && geo.lng != null && (
-						<PlaceSection lat={geo.lat} lng={geo.lng} initialPlaces={places} />
+					{places.data && places.data.length > 0 && geo.lat != null && geo.lng != null && (
+						<PlaceSection lat={geo.lat} lng={geo.lng} initialPlaces={places.data} />
 					)}
 
 					{/* 주변 행사 */}
-					{festivals.length > 0 && <FestivalSection festivals={festivals} />}
+					{festivals.data && festivals.data.length > 0 && (
+						<FestivalSection festivals={festivals.data} />
+					)}
 				</div>
 			)}
 

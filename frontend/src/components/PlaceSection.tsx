@@ -1,7 +1,9 @@
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { Place } from "shared";
 import { fetchPlaces } from "../lib/api";
+import { queryKeys } from "../lib/query-keys";
 import { PlaceCard } from "./PlaceCard";
 import { WeatherLoader } from "./WeatherLoader";
 
@@ -12,28 +14,19 @@ interface Props {
 }
 
 export function PlaceSection({ lat, lng, initialPlaces }: Props) {
-	const [places, setPlaces] = useState(initialPlaces);
-	const [page, setPage] = useState(1);
-	const [loading, setLoading] = useState(false);
-	const [hasMore, setHasMore] = useState(true);
 	const loaderRef = useRef<HTMLDivElement>(null);
 
-	const loadMore = useCallback(async () => {
-		if (loading || !hasMore) return;
-		setLoading(true);
-		try {
-			const nextPage = page + 1;
-			const newPlaces = await fetchPlaces(lat, lng, "all", nextPage);
-			if (newPlaces.length === 0) {
-				setHasMore(false);
-			} else {
-				setPlaces((prev) => [...prev, ...newPlaces]);
-				setPage(nextPage);
-			}
-		} finally {
-			setLoading(false);
-		}
-	}, [lat, lng, page, loading, hasMore]);
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+		queryKey: [...queryKeys.places(lat, lng), "infinite"],
+		queryFn: ({ pageParam }) => fetchPlaces(lat, lng, "all", pageParam),
+		initialPageParam: 1,
+		initialData: { pages: [initialPlaces], pageParams: [1] },
+		getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+			lastPage.length > 0 ? lastPageParam + 1 : undefined,
+		staleTime: 30 * 60 * 1000,
+	});
+
+	const places = data?.pages.flat() ?? [];
 
 	useEffect(() => {
 		const loader = loaderRef.current;
@@ -41,8 +34,8 @@ export function PlaceSection({ lat, lng, initialPlaces }: Props) {
 
 		const observer = new IntersectionObserver(
 			(entries) => {
-				if (entries[0].isIntersecting) {
-					loadMore();
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					fetchNextPage();
 				}
 			},
 			{ root: loader.parentElement, threshold: 0.1 },
@@ -50,13 +43,7 @@ export function PlaceSection({ lat, lng, initialPlaces }: Props) {
 
 		observer.observe(loader);
 		return () => observer.disconnect();
-	}, [loadMore]);
-
-	useEffect(() => {
-		setPlaces(initialPlaces);
-		setPage(1);
-		setHasMore(true);
-	}, [initialPlaces]);
+	}, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
@@ -68,9 +55,9 @@ export function PlaceSection({ lat, lng, initialPlaces }: Props) {
 				{places.map((p) => (
 					<PlaceCard key={p.contentId} place={p} />
 				))}
-				{hasMore && (
+				{hasNextPage && (
 					<div ref={loaderRef} className="flex min-w-[60px] shrink-0 items-center justify-center">
-						{loading && <WeatherLoader size={24} />}
+						{isFetchingNextPage && <WeatherLoader size={24} />}
 					</div>
 				)}
 			</div>
