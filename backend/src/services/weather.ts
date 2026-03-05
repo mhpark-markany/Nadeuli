@@ -1,5 +1,5 @@
 import type { DailyForecast, PrecipitationType, Sky, WbgtGrade, Weather } from "shared";
-import { buildApihubUrl, buildDataGoKrUrl } from "../lib/api-url.js";
+import { buildApihubUrl, buildDataGoKrUrl, fetchJsonSafe } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
 import { nowKST } from "../lib/kst.js";
 import { toMidRegIds } from "./geo.js";
@@ -90,7 +90,7 @@ export async function fetchWeather(lat: number, lng: number): Promise<Weather> {
 	]);
 
 	// 초단기실황 파싱
-	const ncstData = (await ncstRes.json()) as KmaResponse;
+	const ncstData = await fetchJsonSafe<KmaResponse>(ncstRes);
 	const items = ncstData.response.body.items.item;
 	const map = new Map<string, number>();
 	for (const item of items) {
@@ -107,7 +107,7 @@ export async function fetchWeather(lat: number, lng: number): Promise<Weather> {
 	let sky: Sky = "맑음";
 	let fcstPty = pty;
 	try {
-		const ultraData = (await ultraFcstRes.json()) as FcstResponse;
+		const ultraData = await fetchJsonSafe<FcstResponse>(ultraFcstRes);
 		if (ultraData.response.header.resultCode === "00") {
 			const nearest = findNearestFcst(ultraData.response.body.items.item);
 			if (nearest.sky != null) sky = skyCodeToLabel(nearest.sky);
@@ -300,7 +300,7 @@ export async function fetchHourlyForecast(lat: number, lng: number): Promise<Hou
 	});
 
 	const res = await fetch(url);
-	const data = (await res.json()) as FcstResponse;
+	const data = await fetchJsonSafe<FcstResponse>(res);
 	if (data.response.header.resultCode !== "00") return [];
 
 	const items = data.response.body.items.item;
@@ -419,7 +419,7 @@ async function fetchShortTermDaily(nx: number, ny: number, now: Date): Promise<D
 	});
 
 	const res = await fetch(url);
-	const data = (await res.json()) as FcstResponse;
+	const data = await fetchJsonSafe<FcstResponse>(res);
 	if (data.response.header.resultCode !== "00") return [];
 
 	// 날짜별 그룹핑

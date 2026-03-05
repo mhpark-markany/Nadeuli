@@ -1,5 +1,5 @@
 import type { AirGrade, AirQuality, CaiGrade } from "shared";
-import { buildDataGoKrUrl } from "../lib/api-url.js";
+import { buildDataGoKrUrl, fetchJsonSafe } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
 
 const BASE_URL = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc";
@@ -74,7 +74,7 @@ export async function fetchAirQuality(stationName: string): Promise<AirQuality> 
 	});
 
 	const res = await fetch(url);
-	const data = (await res.json()) as AirApiResponse;
+	const data = await fetchJsonSafe<AirApiResponse>(res);
 	const item = data.response.body.items[0];
 	if (!item) throw new Error("대기질 데이터 없음");
 

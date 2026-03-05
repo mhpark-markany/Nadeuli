@@ -1,5 +1,5 @@
 import type { Place, PlaceType } from "shared";
-import { buildDataGoKrUrl } from "../lib/api-url.js";
+import { buildDataGoKrUrl, fetchJsonSafe } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
 
 const BASE_URL = "http://apis.data.go.kr/B551011/KorService2";
@@ -65,7 +65,7 @@ async function fetchByContentType(
 	});
 
 	const res = await fetch(url);
-	const data = (await res.json()) as TourApiResponse;
+	const data = await fetchJsonSafe<TourApiResponse>(res);
 
 	if (data.response.header.resultCode !== "0000") return [];
 	const items = data.response.body.items;

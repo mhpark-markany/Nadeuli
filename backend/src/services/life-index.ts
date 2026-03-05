@@ -1,5 +1,5 @@
 import type { LifeIndex } from "shared";
-import { buildDataGoKrUrl } from "../lib/api-url.js";
+import { buildDataGoKrUrl, fetchJsonSafe } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
 import { nowKST } from "../lib/kst.js";
 
@@ -57,7 +57,7 @@ async function fetchIndex(
 		});
 
 		const res = await fetch(url);
-		const data = (await res.json()) as LifeIndexResponse;
+		const data = await fetchJsonSafe<LifeIndexResponse>(res);
 		if (data.response.header.resultCode !== "00") return undefined;
 
 		const item = data.response.body.items.item[0];

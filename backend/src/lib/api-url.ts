@@ -25,3 +25,12 @@ export function buildApihubUrl(
 	url.searchParams.set("authKey", authKey);
 	return url.toString();
 }
+
+/** fetch 응답을 JSON으로 파싱. res.ok가 아니면 응답 본문을 포함한 에러를 던진다. */
+export async function fetchJsonSafe<T>(res: Response): Promise<T> {
+	if (!res.ok) {
+		const text = await res.text().catch(() => "");
+		throw new Error(`API ${res.status}: ${text.slice(0, 200)}`);
+	}
+	return (await res.json()) as T;
+}
