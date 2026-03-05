@@ -1,11 +1,11 @@
 import type { DailyForecast, PrecipitationType, Sky, WbgtGrade, Weather } from "shared";
-import { buildDataGoKrUrl } from "../lib/api-url.js";
+import { buildApihubUrl, buildDataGoKrUrl } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
 import { nowKST } from "../lib/kst.js";
 import { toMidRegIds } from "./geo.js";
 
 const BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0";
-const MID_BASE_URL = "http://apis.data.go.kr/1360000/MidFcstInfoService";
+const MID_BASE_URL = "https://apihub.kma.go.kr/api/typ02/openApi/MidFcstInfoService";
 
 // ── 위경도 → 기상청 격자 변환 ──
 
@@ -368,7 +368,7 @@ export async function fetchWeeklyForecast(lat: number, lng: number): Promise<Dai
 		const tmFc = getMidFcstTmFc(now);
 		const [midTaRes, midLandRes] = await Promise.all([
 			fetch(
-				buildDataGoKrUrl(`${MID_BASE_URL}/getMidTa`, env.KMA_API_KEY, {
+				buildApihubUrl(`${MID_BASE_URL}/getMidTa`, env.KMA_APIHUB_AUTH_KEY, {
 					dataType: "JSON",
 					numOfRows: "1",
 					regId: taRegId,
@@ -376,7 +376,7 @@ export async function fetchWeeklyForecast(lat: number, lng: number): Promise<Dai
 				}),
 			),
 			fetch(
-				buildDataGoKrUrl(`${MID_BASE_URL}/getMidLandFcst`, env.KMA_API_KEY, {
+				buildApihubUrl(`${MID_BASE_URL}/getMidLandFcst`, env.KMA_APIHUB_AUTH_KEY, {
 					dataType: "JSON",
 					numOfRows: "1",
 					regId: landRegId,

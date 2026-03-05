@@ -11,3 +11,17 @@ export function buildDataGoKrUrl(
 	const sep = url.search ? "&" : "?";
 	return `${url.toString()}${sep}serviceKey=${encodeURIComponent(serviceKey)}`;
 }
+
+/** apihub.kma.go.kr는 authKey를 일반 쿼리 파라미터로 전달한다. */
+export function buildApihubUrl(
+	base: string,
+	authKey: string,
+	params: Record<string, string>,
+): string {
+	const url = new URL(base);
+	for (const [k, v] of Object.entries(params)) {
+		url.searchParams.set(k, v);
+	}
+	url.searchParams.set("authKey", authKey);
+	return url.toString();
+}

@@ -1,6 +1,7 @@
 const requiredKeys = [
 	"AIRKOREA_API_KEY",
 	"KMA_API_KEY",
+	"KMA_APIHUB_AUTH_KEY",
 	"TOUR_API_KEY",
 	"GEMINI_API_KEY",
 	"KAKAO_REST_API_KEY",
@@ -28,6 +29,7 @@ function loadEnv(): Env {
 	return {
 		AIRKOREA_API_KEY: process.env.AIRKOREA_API_KEY ?? "",
 		KMA_API_KEY: process.env.KMA_API_KEY ?? "",
+		KMA_APIHUB_AUTH_KEY: process.env.KMA_APIHUB_AUTH_KEY ?? "",
 		TOUR_API_KEY: process.env.TOUR_API_KEY ?? "",
 		GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
 		KAKAO_REST_API_KEY: process.env.KAKAO_REST_API_KEY ?? "",
