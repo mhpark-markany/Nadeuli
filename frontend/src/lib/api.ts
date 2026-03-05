@@ -1,6 +1,7 @@
 import type {
 	ApiResponse,
 	AskResponse,
+	DailyForecast,
 	DashboardData,
 	Festival,
 	OutdoorScore,
@@ -21,13 +22,14 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 export async function fetchDashboard(lat: number, lng: number): Promise<DashboardData> {
 	const qs = `lat=${lat}&lng=${lng}`;
-	const [airQuality, weather, lifeIndex, score] = await Promise.all([
+	const [airQuality, weather, lifeIndex, score, weeklyForecast] = await Promise.all([
 		fetchJson<DashboardData["airQuality"]>(`${BASE}/air-quality?${qs}`),
 		fetchJson<DashboardData["weather"]>(`${BASE}/weather?${qs}`),
 		fetchJson<DashboardData["lifeIndex"]>(`${BASE}/life-index?${qs}`),
 		fetchJson<OutdoorScore>(`${BASE}/score?${qs}`),
+		fetchJson<DailyForecast[]>(`${BASE}/weather/weekly?${qs}`).catch(() => []),
 	]);
-	return { airQuality, weather, lifeIndex, score };
+	return { airQuality, weather, lifeIndex, score, weeklyForecast };
 }
 
 export async function fetchPlaces(
@@ -36,7 +38,9 @@ export async function fetchPlaces(
 	type: "outdoor" | "indoor" | "all" = "all",
 	page = 1,
 ): Promise<Place[]> {
-	return fetchJson<Place[]>(`${BASE}/places?lat=${lat}&lng=${lng}&radius=5&type=${type}&page=${page}`);
+	return fetchJson<Place[]>(
+		`${BASE}/places?lat=${lat}&lng=${lng}&radius=5&type=${type}&page=${page}`,
+	);
 }
 
 export async function fetchFestivals(lat: number, lng: number): Promise<Festival[]> {

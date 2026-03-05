@@ -357,30 +357,40 @@ interface MidResponse {
 export async function fetchWeeklyForecast(lat: number, lng: number): Promise<DailyForecast[]> {
 	const now = nowKST();
 	const { nx, ny } = toGrid(lat, lng);
-	const { landRegId, taRegId } = toMidRegIds(lat, lng);
-	const tmFc = getMidFcstTmFc(now);
 
-	const [shortDays, midTaRes, midLandRes] = await Promise.all([
-		fetchShortTermDaily(nx, ny, now),
-		fetch(
-			buildDataGoKrUrl(`${MID_BASE_URL}/getMidTa`, env.KMA_API_KEY, {
-				dataType: "JSON",
-				numOfRows: "1",
-				regId: taRegId,
-				tmFc,
-			}),
-		),
-		fetch(
-			buildDataGoKrUrl(`${MID_BASE_URL}/getMidLandFcst`, env.KMA_API_KEY, {
-				dataType: "JSON",
-				numOfRows: "1",
-				regId: landRegId,
-				tmFc,
-			}),
-		),
-	]);
+	// 단기예보 D+0~2
+	const shortDays = await fetchShortTermDaily(nx, ny, now);
 
-	const midDays = parseMidTerm(await midTaRes.json(), await midLandRes.json(), now);
+	// 중기예보 D+3~6 (API 미인가 등 실패 시 단기예보만 반환)
+	let midDays: DailyForecast[] = [];
+	try {
+		const { landRegId, taRegId } = toMidRegIds(lat, lng);
+		const tmFc = getMidFcstTmFc(now);
+		const [midTaRes, midLandRes] = await Promise.all([
+			fetch(
+				buildDataGoKrUrl(`${MID_BASE_URL}/getMidTa`, env.KMA_API_KEY, {
+					dataType: "JSON",
+					numOfRows: "1",
+					regId: taRegId,
+					tmFc,
+				}),
+			),
+			fetch(
+				buildDataGoKrUrl(`${MID_BASE_URL}/getMidLandFcst`, env.KMA_API_KEY, {
+					dataType: "JSON",
+					numOfRows: "1",
+					regId: landRegId,
+					tmFc,
+				}),
+			),
+		]);
+		if (midTaRes.ok && midLandRes.ok) {
+			midDays = parseMidTerm(await midTaRes.json(), await midLandRes.json(), now);
+		}
+	} catch {
+		/* 중기예보 실패 무시 */
+	}
+
 	return [...shortDays, ...midDays].slice(0, 7);
 }
 

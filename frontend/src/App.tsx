@@ -10,6 +10,7 @@ import { LoginButton } from "./components/LoginButton";
 import { PlaceSection } from "./components/PlaceSection";
 import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
+import { WeeklyForecast } from "./components/WeeklyForecast";
 import { useAuth } from "./hooks/useAuth";
 import { useGeolocation } from "./hooks/useGeolocation";
 import { useTheme } from "./hooks/useTheme";
@@ -140,6 +141,9 @@ export function App() {
 
 					{/* 시간대별 전망 */}
 					<HourlyTimeline hours={data.score.hourlyForecast} lat={geo.lat ?? 0} lng={geo.lng ?? 0} />
+
+					{/* 이번 주 전망 */}
+					<WeeklyForecast days={data.weeklyForecast ?? []} />
 
 					{/* 추천 장소 */}
 					{places.length > 0 && geo.lat != null && geo.lng != null && (
