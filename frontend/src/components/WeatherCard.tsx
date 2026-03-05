@@ -56,7 +56,7 @@ export function WeatherCard({ data, lat, lng }: WeatherCardProps) {
 					<dd className="font-medium">{data.windSpeed}m/s</dd>
 				</div>
 				<div className="flex justify-between">
-					<dt className="text-(--text-muted)">WBGT</dt>
+					<dt className="text-(--text-muted)">WBGT(더위지수)</dt>
 					<dd className={`font-medium ${WBGT_COLOR[data.wbgtGrade] ?? ""}`}>
 						{data.wbgt} ({data.wbgtGrade})
 					</dd>

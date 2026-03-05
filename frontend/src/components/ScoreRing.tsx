@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { OutdoorScore, ScoreGrade } from "shared";
+import { SplitText } from "../../shared/components/SplitText";
 import { gradeColor } from "../lib/colors";
 
 const GRADE_MESSAGE: Record<ScoreGrade, string> = {
@@ -62,7 +63,19 @@ export function ScoreRing({ score }: { score: OutdoorScore }) {
 				</text>
 			</svg>
 
-			<p className="text-sm text-(--text-secondary)">{GRADE_MESSAGE[score.grade]}</p>
+			<SplitText
+				text={GRADE_MESSAGE[score.grade]}
+				className="text-sm text-(--text-secondary)"
+				delay={50}
+				duration={1.25}
+				ease="elastic.out(1, 0.3)"
+				splitType="chars"
+				from={{ opacity: 0, y: 40 }}
+				to={{ opacity: 1, y: 0 }}
+				threshold={0.1}
+				rootMargin="-100px"
+				textAlign="center"
+			/>
 
 			{/* 세부 점수 */}
 			<div className="w-full max-w-[220px] space-y-2">

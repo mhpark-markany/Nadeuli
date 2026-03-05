@@ -6,10 +6,10 @@ export function AirQualityCard({ data }: { data: AirQuality }) {
 
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
-			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">대기질</h3>
+			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">대기질(CAI)</h3>
 			<div className="mb-3 flex items-baseline gap-2">
 				<span className="text-2xl font-bold" style={{ color }}>
-					CAI {data.cai}
+					{data.cai}
 				</span>
 				<span
 					className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
