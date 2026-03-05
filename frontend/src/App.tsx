@@ -18,6 +18,26 @@ import { useTheme } from "./hooks/useTheme";
 import { fetchAddress, fetchDashboard, fetchFestivals, fetchPlaces } from "./lib/api";
 import { selectTitles } from "./lib/naduri-titles";
 
+const LOADING_TEXTS = [
+	"구름 위에서 날씨 훔쳐보는 중 ☁️",
+	"미세먼지한테 오늘 기분 물어보는 중 💨",
+	"자외선 지수 몰래 엿보는 중 🕶️",
+	"야외활동 점수 열심히 계산 중 🧮",
+	"근처 숨은 명소 탐색 중 📍",
+	"오늘 나들이 갈 수 있을지 고민 중 🤔",
+	"하늘 상태 체크하는 중 🌤️",
+	"바람 세기 측정하는 중 🌬️",
+];
+
+function shuffle<T>(arr: readonly T[]): T[] {
+	const a = [...arr];
+	for (let i = a.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[a[i], a[j]] = [a[j], a[i]];
+	}
+	return a;
+}
+
 export function App() {
 	const geo = useGeolocation();
 	const { theme, setTheme } = useTheme();
@@ -28,6 +48,7 @@ export function App() {
 	const [address, setAddress] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
+	const loadingTexts = useMemo(() => shuffle(LOADING_TEXTS), []);
 
 	const load = useCallback(async (lat: number, lng: number) => {
 		setLoading(true);
@@ -98,7 +119,15 @@ export function App() {
 					style={{ animation: "fade-in-up 0.5s ease-out" }}
 				>
 					<WeatherLoader size={72} />
-					<p className="mt-3 text-sm text-(--text-muted)">날씨를 확인하고 있어요...</p>
+					<RotatingText
+						texts={loadingTexts}
+						className="mt-3 text-base text-(--text-muted)"
+						rotationInterval={2000}
+						transition={{ type: "spring", damping: 25, stiffness: 300 }}
+						initial={{ y: "100%", opacity: 0 }}
+						animate={{ y: 0, opacity: 1 }}
+						exit={{ y: "-100%", opacity: 0 }}
+					/>
 				</div>
 			)}
 
@@ -138,9 +167,7 @@ export function App() {
 				<div className="stagger-in space-y-4">
 					{/* 적합도 점수 */}
 					<div className="rounded-2xl bg-(--bg-card) p-6 shadow-sm">
-						<h2 className="mb-4 text-center text-sm font-medium text-(--text-secondary)">
-							야외활동 적합도
-						</h2>
+						<h2 className="mb-2 text-base font-medium text-(--text-secondary)">야외활동 적합도</h2>
 						<ScoreRing score={data.score} />
 					</div>
 

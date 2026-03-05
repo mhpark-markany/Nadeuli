@@ -1,6 +1,28 @@
 import { motion } from "framer-motion";
-import type { OutdoorScore } from "shared";
+import type { OutdoorScore, ScoreGrade } from "shared";
 import { gradeColor } from "../lib/colors";
+
+const GRADE_MESSAGE: Record<ScoreGrade, string> = {
+	최적: "☀️ 나들이 가기 딱 좋은 날이에요!",
+	좋음: "🌤️ 밖에 나가기 좋은 날씨예요",
+	보통: "🌥️ 나쁘지 않지만 컨디션 체크하세요",
+	주의: "🌧️ 외출 시 주의가 필요해요",
+	위험: "⛔ 실내 활동을 추천드려요",
+};
+
+const BREAKDOWN = [
+	{ key: "airQualityScore", label: "대기질" },
+	{ key: "weatherScore", label: "날씨" },
+	{ key: "uvScore", label: "자외선" },
+] as const;
+
+function barColor(value: number): string {
+	if (value >= 80) return "var(--color-score-optimal)";
+	if (value >= 60) return "var(--color-score-good)";
+	if (value >= 40) return "var(--color-score-moderate)";
+	if (value >= 20) return "var(--color-score-caution)";
+	return "var(--color-score-danger)";
+}
 
 export function ScoreRing({ score }: { score: OutdoorScore }) {
 	const color = gradeColor(score.grade);
@@ -8,9 +30,16 @@ export function ScoreRing({ score }: { score: OutdoorScore }) {
 	const offset = circumference - (score.total / 100) * circumference;
 
 	return (
-		<div className="flex flex-col items-center gap-2">
+		<div className="flex flex-col items-center gap-3">
 			<svg width="140" height="140" viewBox="0 0 120 120" aria-label={`적합도 ${score.total}점`}>
-				<circle cx="60" cy="60" r="52" fill="none" stroke="var(--border-default)" strokeWidth="12" />
+				<circle
+					cx="60"
+					cy="60"
+					r="52"
+					fill="none"
+					stroke="var(--border-default)"
+					strokeWidth="12"
+				/>
 				<motion.circle
 					cx="60"
 					cy="60"
@@ -32,9 +61,31 @@ export function ScoreRing({ score }: { score: OutdoorScore }) {
 					/100
 				</text>
 			</svg>
-			<span className="text-sm font-medium" style={{ color }}>
-				{score.grade}
-			</span>
+
+			<p className="text-sm text-(--text-secondary)">{GRADE_MESSAGE[score.grade]}</p>
+
+			{/* 세부 점수 */}
+			<div className="w-full max-w-[220px] space-y-2">
+				{BREAKDOWN.map(({ key, label }) => {
+					const value = score[key];
+					return (
+						<div key={key} className="flex items-center gap-2 text-xs">
+							<span className="w-12 shrink-0 text-(--text-muted)">{label}</span>
+							<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-(--border-default)">
+								<motion.div
+									className="h-full rounded-full"
+									style={{ backgroundColor: barColor(value) }}
+									initial={{ width: 0 }}
+									animate={{ width: `${value}%` }}
+									transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+								/>
+							</div>
+							<span className="w-7 text-right tabular-nums text-(--text-secondary)">{value}</span>
+						</div>
+					);
+				})}
+			</div>
+
 			{score.wbgtOverride && (
 				<span className="rounded-full bg-red-500/10 px-2 py-0.5 text-xs text-(--color-error)">
 					🌡️ 열 스트레스 경고
