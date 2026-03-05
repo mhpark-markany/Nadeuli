@@ -11,6 +11,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import type { AIRecommendation } from "shared";
 import { askAI } from "../lib/api";
+import { WeatherLoader } from "./WeatherLoader";
 
 interface ChatMessage {
 	id: number;
@@ -157,8 +158,17 @@ export function ChatPanel({ lat, lng, userId }: ChatPanelProps) {
 
 				{loading && (
 					<div className="flex items-center gap-2 text-xs text-(--text-muted)">
-						<div className="h-4 w-4 animate-spin rounded-full border-2 border-(--border-default) border-t-(--color-brand)" />
-						생각 중...
+						<WeatherLoader size={24} />
+						생각 중
+						<span className="inline-flex gap-0.5">
+							{[0, 1, 2].map((i) => (
+								<span
+									key={i}
+									className="inline-block h-1 w-1 rounded-full bg-current"
+									style={{ animation: `bounce-dot 1.2s ${i * 0.15}s infinite` }}
+								/>
+							))}
+						</span>
 					</div>
 				)}
 			</div>

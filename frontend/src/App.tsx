@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { MapPin, MapPinOff } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DashboardData, Festival, Place } from "shared";
 import RotatingText from "../shared/components/RotatingText";
@@ -10,6 +10,7 @@ import { LoginButton } from "./components/LoginButton";
 import { PlaceSection } from "./components/PlaceSection";
 import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
+import { WeatherLoader } from "./components/WeatherLoader";
 import { WeeklyForecast } from "./components/WeeklyForecast";
 import { useAuth } from "./hooks/useAuth";
 import { useGeolocation } from "./hooks/useGeolocation";
@@ -92,21 +93,36 @@ export function App() {
 
 			{/* 로딩/에러 상태 */}
 			{(geo.loading || loading) && (
-				<div className="flex items-center justify-center py-20">
-					<div className="h-8 w-8 animate-spin rounded-full border-4 border-(--border-default) border-t-(--color-brand)" />
+				<div
+					className="flex flex-col items-center justify-center py-20"
+					style={{ animation: "fade-in-up 0.5s ease-out" }}
+				>
+					<WeatherLoader size={72} />
+					<p className="mt-3 text-sm text-(--text-muted)">날씨를 확인하고 있어요...</p>
 				</div>
 			)}
 
 			{geo.error && (
-				<div className="rounded-xl bg-red-500/10 p-4 text-center text-sm text-(--color-error)">
-					<p>위치 정보를 가져올 수 없습니다</p>
-					<p className="mt-1 text-xs opacity-70">{geo.error}</p>
+				<div
+					className="flex flex-col items-center justify-center py-16 text-center"
+					style={{ animation: "fade-in-up 0.5s ease-out" }}
+				>
+					<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-(--bg-muted)">
+						<MapPinOff className="h-7 w-7 text-(--text-muted)" />
+					</div>
+					<p className="text-sm font-medium text-(--text-primary)">위치 정보가 필요해요</p>
+					<p className="mt-1 text-xs text-(--text-muted)">
+						현재 위치를 기반으로 날씨와 추천 정보를 알려드려요
+					</p>
+					<p className="mt-3 rounded-lg bg-(--bg-muted) px-3 py-2 text-xs text-(--text-secondary)">
+						브라우저 주소창 🔒 아이콘 → 위치 권한 허용
+					</p>
 					<button
 						type="button"
 						onClick={geo.retry}
-						className="mt-2 cursor-pointer rounded-lg bg-red-500/20 px-3 py-1 text-xs font-medium transition-opacity hover:opacity-70"
+						className="mt-4 cursor-pointer rounded-xl bg-(--color-brand) px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80"
 					>
-						다시 시도
+						위치 다시 요청
 					</button>
 				</div>
 			)}
@@ -119,7 +135,7 @@ export function App() {
 
 			{/* 대시보드 */}
 			{data && !loading && (
-				<div className="space-y-4">
+				<div className="stagger-in space-y-4">
 					{/* 적합도 점수 */}
 					<div className="rounded-2xl bg-(--bg-card) p-6 shadow-sm">
 						<h2 className="mb-4 text-center text-sm font-medium text-(--text-secondary)">

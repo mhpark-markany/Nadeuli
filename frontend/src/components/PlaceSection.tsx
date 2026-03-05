@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Place } from "shared";
 import { fetchPlaces } from "../lib/api";
 import { PlaceCard } from "./PlaceCard";
+import { WeatherLoader } from "./WeatherLoader";
 
 interface Props {
 	lat: number;
@@ -68,13 +69,8 @@ export function PlaceSection({ lat, lng, initialPlaces }: Props) {
 					<PlaceCard key={p.contentId} place={p} />
 				))}
 				{hasMore && (
-					<div
-						ref={loaderRef}
-						className="flex min-w-[60px] shrink-0 items-center justify-center"
-					>
-						{loading && (
-							<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--border-default) border-t-(--color-brand)" />
-						)}
+					<div ref={loaderRef} className="flex min-w-[60px] shrink-0 items-center justify-center">
+						{loading && <WeatherLoader size={24} />}
 					</div>
 				)}
 			</div>
