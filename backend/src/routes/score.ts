@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import type { ApiResponse, OutdoorScore } from "shared";
+import { cacheGet, cacheSet } from "../lib/cache.js";
 import { fetchAirQuality, findNearestStation } from "../services/air-quality.js";
 import { toAreaNo } from "../services/geo.js";
 import { fetchLifeIndex } from "../services/life-index.js";
 import { calculateOutdoorScore } from "../services/score.js";
-import { fetchHourlyForecast, fetchWeather } from "../services/weather.js";
+import { fetchHourlyForecast, fetchWeather, toGrid } from "../services/weather.js";
 
 export const scoreRoute = new Hono();
 
@@ -24,6 +25,17 @@ scoreRoute.get("/", async (c) => {
 	}
 
 	try {
+		const { nx, ny } = toGrid(lat, lng);
+		const cacheKey = `score:${nx}:${ny}`;
+		const cached = await cacheGet<OutdoorScore>(cacheKey);
+		if (cached) {
+			return c.json<ApiResponse<OutdoorScore>>({
+				success: true,
+				data: cached,
+				cachedAt: new Date().toISOString(),
+			});
+		}
+
 		const areaNo = toAreaNo(lat, lng);
 		const stationName = findNearestStation(lat, lng);
 
@@ -43,6 +55,7 @@ scoreRoute.get("/", async (c) => {
 			hourlyWeather,
 		});
 
+		await cacheSet(cacheKey, score, 3600);
 		return c.json<ApiResponse<OutdoorScore>>({ success: true, data: score });
 	} catch (e) {
 		const message = e instanceof Error ? e.message : "알 수 없는 오류";
