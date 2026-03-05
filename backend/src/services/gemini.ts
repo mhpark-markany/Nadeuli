@@ -263,6 +263,7 @@ export interface AskGeminiInput {
 	lat: number;
 	lng: number;
 	isSensitiveGroup: boolean;
+	userMemories?: string[];
 }
 
 const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
@@ -365,11 +366,16 @@ async function sendWithRetry(
 }
 
 export async function askGemini(input: AskGeminiInput): Promise<AIRecommendation> {
+	const memoryBlock = input.userMemories?.length
+		? `\n\n## 사용자 정보 (이전 대화에서 파악)\n${input.userMemories.map((m) => `- ${m}`).join("\n")}`
+		: "";
+	const systemWithMemory = SYSTEM_INSTRUCTION + memoryBlock;
+
 	// 1단계: 도구 호출용 채팅 (responseSchema 없이)
 	const chat = ai.chats.create({
 		model: "gemini-3-flash-preview",
 		config: {
-			systemInstruction: SYSTEM_INSTRUCTION,
+			systemInstruction: systemWithMemory,
 			tools: [{ functionDeclarations: FUNCTION_DECLARATIONS }],
 			maxOutputTokens: 2048,
 		},
@@ -415,7 +421,7 @@ export async function askGemini(input: AskGeminiInput): Promise<AIRecommendation
 	// 2단계: 수집된 데이터로 구조화된 응답 생성 (tools 없이, responseSchema 적용)
 	const structured = await ai.models.generateContent({
 		model: "gemini-3-flash-preview",
-		contents: `${SYSTEM_INSTRUCTION}
+		contents: `${systemWithMemory}
 
 ## 사용자 질문
 ${prompt}

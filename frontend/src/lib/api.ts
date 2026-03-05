@@ -48,9 +48,13 @@ export async function fetchFestivals(lat: number, lng: number): Promise<Festival
 }
 
 export async function askAI(question: string, lat: number, lng: number): Promise<AskResponse> {
+	const headers: Record<string, string> = { "Content-Type": "application/json" };
+	const token = sessionStorage.getItem("accessToken");
+	if (token) headers.Authorization = `Bearer ${token}`;
+
 	const res = await fetch(`${BASE}/ask`, {
 		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		headers,
 		body: JSON.stringify({ question, location: { lat, lng } }),
 	});
 	if (!res.ok) throw new Error(`API 오류: ${res.status}`);

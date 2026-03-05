@@ -1,12 +1,15 @@
 import { Hono } from "hono";
 import type { AIRecommendation, ApiResponse, AskRequest, AskResponse } from "shared";
 import { cacheGet, cacheSet } from "../lib/cache.js";
+import { prisma } from "../lib/db.js";
+import { verifyToken } from "../lib/jwt.js";
 import { nowKST } from "../lib/kst.js";
 import { fetchAirQuality, findNearestStation } from "../services/air-quality.js";
 import { generateFallback } from "../services/fallback.js";
 import { askGemini } from "../services/gemini.js";
 import { toAreaNo } from "../services/geo.js";
 import { fetchLifeIndex } from "../services/life-index.js";
+import { extractMemories, getUserMemories } from "../services/memory.js";
 import { fetchPlaces } from "../services/places.js";
 import { calculateOutdoorScore } from "../services/score.js";
 import { fetchWeather } from "../services/weather.js";
@@ -24,6 +27,18 @@ function buildCacheKey(lat: number, lng: number, question: string): string {
 	return `ai:${lat.toFixed(2)}:${lng.toFixed(2)}:${slot}:${qHash}`;
 }
 
+/** Authorization 헤더에서 userId를 추출. 토큰 없거나 무효하면 null. */
+async function optionalUserId(c: {
+	req: { header: (name: string) => string | undefined };
+}): Promise<string | null> {
+	const auth = c.req.header("Authorization");
+	if (!auth?.startsWith("Bearer ")) return null;
+	const payload = await verifyToken(auth.slice(7));
+	if (!payload) return null;
+	const user = await prisma.user.findUnique({ where: { id: payload.sub }, select: { id: true } });
+	return user?.id ?? null;
+}
+
 askRoute.post("/", async (c) => {
 	const body = await c.req.json<AskRequest>();
 	const { question, profile, location } = body;
@@ -37,6 +52,7 @@ askRoute.post("/", async (c) => {
 
 	const { lat, lng } = location;
 	const isSensitiveGroup = profile?.isSensitiveGroup ?? false;
+	const userId = await optionalUserId(c);
 
 	try {
 		const cacheKey = buildCacheKey(lat, lng, question);
@@ -49,9 +65,12 @@ askRoute.post("/", async (c) => {
 			});
 		}
 
+		// 로그인 사용자면 메모리 조회
+		const userMemories = userId ? await getUserMemories(userId) : undefined;
+
 		let recommendation: AIRecommendation;
 		try {
-			recommendation = await askGemini({ question, lat, lng, isSensitiveGroup });
+			recommendation = await askGemini({ question, lat, lng, isSensitiveGroup, userMemories });
 		} catch (geminiErr) {
 			console.error(
 				"[Ask] Gemini 실패:",
@@ -71,6 +90,14 @@ askRoute.post("/", async (c) => {
 		}
 
 		await cacheSet(cacheKey, recommendation, CACHE_TTL);
+
+		// 로그인 사용자면 비동기로 메모리 추출 (응답 지연 없음)
+		if (userId) {
+			extractMemories(userId, question, recommendation.summary, userMemories ?? []).catch((e) =>
+				console.error("[Memory] 추출 실패:", e),
+			);
+		}
+
 		return c.json<ApiResponse<AskResponse>>({
 			success: true,
 			data: { recommendation, cached: false },

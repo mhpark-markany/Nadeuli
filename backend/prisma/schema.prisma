@@ -21,6 +21,7 @@ model User {
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   settings      UserSettings?
+  memories      UserMemory[]
 
   @@map("users")
 }
@@ -36,4 +37,17 @@ model UserSettings {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
+}
+
+model UserMemory {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  fact      String
+  category  String   // family, pet, health, preference, etc.
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_memories")
 }
