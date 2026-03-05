@@ -209,7 +209,7 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 			)}
 
 			{/* 추천 시간대 */}
-			{rec.timeSlots.length > 0 && (
+			{rec.timeSlots?.length > 0 && (
 				<div className="space-y-1">
 					{rec.timeSlots.map((slot) => (
 						<p
@@ -224,7 +224,7 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 			)}
 
 			{/* 활동 */}
-			{rec.activities.length > 0 && (
+			{rec.activities?.length > 0 && (
 				<div className="flex flex-wrap gap-2">
 					{rec.activities.map((a) => (
 						<span
@@ -243,7 +243,7 @@ function RecommendationCard({ rec }: { rec: AIRecommendation }) {
 			)}
 
 			{/* 주의사항 */}
-			{rec.cautions.length > 0 && (
+			{rec.cautions?.length > 0 && (
 				<ul className="list-inside list-disc text-(--text-secondary)">
 					{rec.cautions.map((c) => (
 						<li key={c}>{c}</li>
