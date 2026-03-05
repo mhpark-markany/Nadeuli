@@ -193,7 +193,17 @@ export function App() {
 					</select>
 				</div>
 				<p>날씨 데이터: 기상청 | 대기질: 에어코리아 | 장소: 한국관광공사</p>
-				<p className="mt-1">© 2026 나들이</p>
+				<p className="mt-1">
+					Built by{" "}
+					<a
+						href="https://minheum.dev"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="underline transition-colors hover:text-(--text-secondary)"
+					>
+						minheum.dev
+					</a>
+				</p>
 			</footer>
 		</div>
 	);
