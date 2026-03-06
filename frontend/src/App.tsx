@@ -167,7 +167,9 @@ export function App() {
 							</h2>
 							{todayForecast && (
 								<p className="-mt-2 mb-3 flex items-center justify-between text-sm text-(--text-muted)">
-									<span>최저 {todayForecast.minTemp}° / 최고 {todayForecast.maxTemp}°</span>
+									<span>
+										최저 {todayForecast.minTemp}° / 최고 {todayForecast.maxTemp}°
+									</span>
 									<span>체감 {data.weather.feelsLike}°</span>
 								</p>
 							)}
@@ -181,7 +183,7 @@ export function App() {
 					)}
 
 					{/* 대기질 + 날씨 */}
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<div className="grid grid-cols-2 gap-4">
 						<AirQualityCard data={data.airQuality} />
 						<WeatherCard data={data.weather} lat={geo.lat ?? 0} lng={geo.lng ?? 0} />
 					</div>
