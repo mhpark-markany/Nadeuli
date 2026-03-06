@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import type { OutdoorScore, ScoreGrade } from "shared";
+import type { OutdoorScore, PrecipitationType, ScoreGrade } from "shared";
 import { SplitText } from "../../shared/components/SplitText";
 import { gradeColor } from "../lib/colors";
 
@@ -9,6 +9,12 @@ const GRADE_MESSAGE: Record<ScoreGrade, string> = {
 	보통: "🌥️ 나쁘지 않지만 컨디션 체크하세요",
 	주의: "🌧️ 외출 시 주의가 필요해요",
 	위험: "⛔ 실내 활동을 추천드려요",
+};
+
+const PRECIP_OVERRIDE: Record<Exclude<PrecipitationType, "없음">, string> = {
+	비: "🌧️ 비가 오지만 대기질은 좋아요, 우산 챙기세요",
+	"비/눈": "🌧️ 비/눈 소식이 있어요, 우산 챙기세요",
+	눈: "🌨️ 눈이 와요, 따뜻하게 입고 나가세요",
 };
 
 const BREAKDOWN = [
@@ -25,10 +31,20 @@ function barColor(value: number): string {
 	return "var(--color-score-danger)";
 }
 
-export function ScoreRing({ score }: { score: OutdoorScore }) {
+interface ScoreRingProps {
+	score: OutdoorScore;
+	precipitationType?: PrecipitationType;
+}
+
+export function ScoreRing({ score, precipitationType }: ScoreRingProps) {
 	const color = gradeColor(score.grade);
 	const circumference = 2 * Math.PI * 52;
 	const offset = circumference - (score.total / 100) * circumference;
+	const shouldOverride =
+		precipitationType &&
+		precipitationType !== "없음" &&
+		(score.grade === "최적" || score.grade === "좋음");
+	const message = shouldOverride ? PRECIP_OVERRIDE[precipitationType] : GRADE_MESSAGE[score.grade];
 
 	return (
 		<div className="flex flex-col items-center gap-3">
@@ -64,7 +80,7 @@ export function ScoreRing({ score }: { score: OutdoorScore }) {
 			</svg>
 
 			<SplitText
-				text={GRADE_MESSAGE[score.grade]}
+				text={message}
 				className="text-sm text-(--text-secondary)"
 				delay={50}
 				duration={1.25}

@@ -146,7 +146,7 @@ export function App() {
 					{/* 적합도 점수 */}
 					<div className="rounded-2xl bg-(--bg-card) p-6 shadow-sm">
 						<h2 className="mb-2 text-base font-medium text-(--text-secondary)">야외활동 적합도</h2>
-						<ScoreRing score={data.score} />
+						<ScoreRing score={data.score} precipitationType={data.weather.precipitationType} />
 					</div>
 
 					{/* 대기질 + 날씨 */}
