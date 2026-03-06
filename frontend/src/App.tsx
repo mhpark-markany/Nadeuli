@@ -163,7 +163,7 @@ export function App() {
 					{/* 시간대별 전망 */}
 					<HourlyTimeline hours={data.score.hourlyForecast} lat={geo.lat ?? 0} lng={geo.lng ?? 0} />
 
-					{/* 이번 주 전망 */}
+					{/* 7일간 전망 */}
 					<WeeklyForecast days={data.weeklyForecast ?? []} />
 
 					{/* 추천 장소 */}

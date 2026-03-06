@@ -1,11 +1,11 @@
-import { CloudRain, CloudSnow, Droplets } from "lucide-react";
+import { Droplets } from "lucide-react";
 import type { DailyForecast, PrecipitationType, Sky } from "shared";
 
 const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
 
 function weatherEmoji(sky: Sky, pty: PrecipitationType): React.ReactNode {
-	if (pty === "비" || pty === "비/눈") return <CloudRain className="h-5 w-5 text-blue-400" />;
-	if (pty === "눈") return <CloudSnow className="h-5 w-5 text-sky-300" />;
+	if (pty === "비" || pty === "비/눈") return <span className="text-base">🌧️</span>;
+	if (pty === "눈") return <span className="text-base">🌨️</span>;
 	if (sky === "흐림") return <span className="text-base">☁️</span>;
 	if (sky === "구름많음") return <span className="text-base">⛅</span>;
 	return <span className="text-base">☀️</span>;
@@ -19,13 +19,11 @@ function parseDate(dateStr: string): Date {
 }
 
 function formatDay(dateStr: string, index: number): { label: string; sub: string } {
-	if (index === 0) return { label: "오늘", sub: "" };
-	if (index === 1) return { label: "내일", sub: "" };
 	const d = parseDate(dateStr);
-	return {
-		label: DAY_NAMES[d.getDay()],
-		sub: `${d.getMonth() + 1}/${d.getDate()}`,
-	};
+	const sub = `${d.getMonth() + 1}/${d.getDate()}`;
+	if (index === 0) return { label: "오늘", sub };
+	if (index === 1) return { label: "내일", sub };
+	return { label: DAY_NAMES[d.getDay()], sub };
 }
 
 interface Props {
@@ -37,7 +35,7 @@ export function WeeklyForecast({ days }: Props) {
 
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
-			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">이번 주 전망</h3>
+			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">7일간 전망</h3>
 			<div className="flex flex-col gap-2">
 				{days.map((day, i) => {
 					const { label, sub } = formatDay(day.date, i);
@@ -60,22 +58,22 @@ export function WeeklyForecast({ days }: Props) {
 							{/* 강수확률 */}
 							<div className="w-12 shrink-0 text-center">
 								{day.pop > 0 ? (
-									<span className="flex items-center justify-center gap-0.5 text-xs text-blue-400">
-										<Droplets className="h-3 w-3" />
+									<span className="flex items-center justify-center gap-0.5 text-sm text-blue-400">
+										<Droplets className="h-3.5 w-3.5" />
 										{day.pop}%
 									</span>
 								) : (
-									<span className="text-xs text-(--text-muted)">—</span>
+									<span className="text-sm text-(--text-muted)">—</span>
 								)}
 							</div>
 
 							{/* 기온 바 */}
 							<div className="flex flex-1 items-center gap-2">
-								<span className="w-8 text-right text-xs text-blue-400">{day.minTemp}°</span>
-								<div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-(--bg-muted)">
+								<span className="w-8 text-right text-sm text-blue-400">{day.minTemp}°</span>
+								<div className="relative h-2 flex-1 overflow-hidden rounded-full bg-(--bg-muted)">
 									<TempBar min={day.minTemp} max={day.maxTemp} rangeMin={days} />
 								</div>
-								<span className="w-8 text-xs text-orange-400">{day.maxTemp}°</span>
+								<span className="w-8 text-sm text-orange-400">{day.maxTemp}°</span>
 							</div>
 						</div>
 					);
