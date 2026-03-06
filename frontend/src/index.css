@@ -40,7 +40,7 @@
 	--color-info: #3b82f6;
 
 	/* 브랜드 */
-	--color-brand: #3b82f6;
+	--color-brand: light-dark(#2d5891, #3171d6);
 	--color-brand-light: light-dark(#dbeafe, #1e3a5f);
 	--radius: 0.625rem;
 	--background: oklch(1 0 0);
