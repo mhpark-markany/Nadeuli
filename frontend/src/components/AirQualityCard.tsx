@@ -1,3 +1,4 @@
+import { Wind } from "lucide-react";
 import type { AirQuality } from "shared";
 import { caiColor, o3Color, pm10Color, pm25Color } from "../lib/colors";
 
@@ -6,7 +7,10 @@ export function AirQualityCard({ data }: { data: AirQuality }) {
 
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
-			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">대기질(CAI)</h3>
+			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
+				<Wind className="h-4 w-4" />
+				대기질(CAI)
+			</h3>
 			<div className="mb-3 flex items-baseline gap-2">
 				<span className="text-2xl font-bold" style={{ color }}>
 					{data.cai}

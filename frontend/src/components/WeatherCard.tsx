@@ -1,5 +1,5 @@
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import { CloudRain } from "lucide-react";
+import { CloudRain, Sun } from "lucide-react";
 import type { Weather } from "shared";
 import { getWeatherLottie, isNightTime } from "../lib/weather";
 
@@ -32,7 +32,10 @@ export function WeatherCard({ data, lat, lng }: WeatherCardProps) {
 					style={{ width: 120, height: 120 }}
 				/>
 			</div>
-			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">날씨</h3>
+			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
+				<Sun className="h-4 w-4" />
+				날씨
+			</h3>
 			<div className="mb-3 flex items-center justify-between">
 				<span className="text-2xl font-bold">{data.temperature}℃</span>
 				{data.precipitationType !== "없음" && (

@@ -1,4 +1,4 @@
-import { Droplets } from "lucide-react";
+import { CalendarDays, Droplets } from "lucide-react";
 import type { DailyForecast, PrecipitationType, Sky } from "shared";
 
 const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
@@ -35,7 +35,10 @@ export function WeeklyForecast({ days }: Props) {
 
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
-			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">7일간 전망</h3>
+			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
+				<CalendarDays className="h-4 w-4" />
+				7일간 전망
+			</h3>
 			<div className="flex flex-col gap-2">
 				{days.map((day, i) => {
 					const { label, sub } = formatDay(day.date, i);

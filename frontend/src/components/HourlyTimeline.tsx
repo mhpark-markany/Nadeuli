@@ -1,3 +1,4 @@
+import { Clock } from "lucide-react";
 import type { HourlyScore, PrecipitationType, Sky } from "shared";
 import { gradeColor } from "../lib/colors";
 import { getSunTimes } from "../lib/weather";
@@ -12,9 +13,9 @@ function weatherIcon(sky: Sky, pty: PrecipitationType): string {
 
 const POINT_GAP = 64;
 const PADDING_X = 24;
-const PADDING_TOP = 20;
+const PADDING_TOP = 40;
 const CHART_H = 100;
-const SVG_H = 190;
+const SVG_H = 210;
 
 interface Props {
 	hours: HourlyScore[];
@@ -53,8 +54,10 @@ export function HourlyTimeline({ hours, lat, lng }: Props) {
 	const lastHour = hours[hours.length - 1].hour;
 
 	const getSunMarker = (sunHour: number, label: string, time: Date) => {
-		if (sunHour < firstHour || sunHour > lastHour) return null;
-		const x = PADDING_X + (sunHour - firstHour) * POINT_GAP;
+		// 내일 시간대(24+)에 해당하는 경우도 체크
+		const h = sunHour >= firstHour && sunHour <= lastHour ? sunHour : sunHour + 24;
+		if (h < firstHour || h > lastHour) return null;
+		const x = PADDING_X + (h - firstHour) * POINT_GAP;
 		const timeStr = time.toLocaleTimeString("ko-KR", {
 			hour: "2-digit",
 			minute: "2-digit",
@@ -68,7 +71,10 @@ export function HourlyTimeline({ hours, lat, lng }: Props) {
 
 	return (
 		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
-			<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">시간대별 전망</h3>
+			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
+				<Clock className="h-4 w-4" />
+				시간대별 전망
+			</h3>
 			<div className="overflow-x-auto select-none">
 				<svg
 					width={svgW}
