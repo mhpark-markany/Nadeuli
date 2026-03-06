@@ -45,38 +45,38 @@ export function WeeklyForecast({ days }: Props) {
 					return (
 						<div
 							key={day.date}
-							className="flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-(--bg-muted)"
+							className="flex items-center gap-2 rounded-xl px-2 py-2 transition-colors hover:bg-(--bg-muted)"
 						>
 							{/* 요일 */}
-							<div className="w-10 shrink-0 text-center">
+							<div className="w-8 shrink-0 text-center">
 								<span className="text-sm font-medium text-(--text-primary)">{label}</span>
 								{sub && <span className="block text-[10px] text-(--text-muted)">{sub}</span>}
 							</div>
 
 							{/* 날씨 아이콘 */}
-							<div className="flex w-8 shrink-0 justify-center">
+							<div className="flex w-6 shrink-0 justify-center">
 								{weatherEmoji(day.sky, day.precipitationType)}
 							</div>
 
 							{/* 강수확률 */}
-							<div className="w-12 shrink-0 text-center">
+							<div className="w-10 shrink-0 text-center">
 								{day.pop > 0 ? (
-									<span className="flex items-center justify-center gap-0.5 text-sm text-(--color-info)">
-										<Droplets className="h-3.5 w-3.5" />
+									<span className="flex items-center justify-center gap-0.5 text-xs text-(--color-info)">
+										<Droplets className="h-3 w-3" />
 										{day.pop}%
 									</span>
 								) : (
-									<span className="text-sm text-(--text-muted)">—</span>
+									<span className="text-xs text-(--text-muted)">—</span>
 								)}
 							</div>
 
 							{/* 기온 바 */}
-							<div className="flex flex-1 items-center gap-2">
-								<span className="w-8 text-right text-sm text-(--color-info)">{day.minTemp}°</span>
+							<div className="flex flex-1 items-center gap-1.5">
+								<span className="w-7 text-right text-xs text-(--color-info)">{day.minTemp}°</span>
 								<div className="relative h-2 flex-1 overflow-hidden rounded-full bg-(--bg-muted)">
 									<TempBar min={day.minTemp} max={day.maxTemp} rangeMin={days} />
 								</div>
-								<span className="w-8 text-sm text-orange-300">{day.maxTemp}°</span>
+								<span className="w-7 text-xs text-orange-300">{day.maxTemp}°</span>
 							</div>
 						</div>
 					);
