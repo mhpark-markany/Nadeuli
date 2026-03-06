@@ -6,12 +6,12 @@ export function AirQualityCard({ data }: { data: AirQuality }) {
 	const color = caiColor(data.cai);
 
 	return (
-		<div className="glass-card rounded-2xl p-5">
+		<div className="glass-card rounded-2xl p-4">
 			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
 				<Wind className="h-4 w-4" />
 				대기질(CAI)
 			</h3>
-			<div className="mb-3 flex items-baseline gap-2">
+			<div className="mb-3 flex items-center gap-2">
 				<span className="text-2xl font-bold" style={{ color }}>
 					{data.cai}
 				</span>

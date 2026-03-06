@@ -21,7 +21,12 @@ export function WeatherPreview() {
 
 	return (
 		<>
-			<WeatherParticleBackground timeOfDay={timeOfDay} sky={sky} precipitationType={pty} isDark={resolvedTheme === "dark"} />
+			<WeatherParticleBackground
+				timeOfDay={timeOfDay}
+				sky={sky}
+				precipitationType={pty}
+				isDark={resolvedTheme === "dark"}
+			/>
 
 			<div className="relative z-10 mx-auto flex min-h-screen max-w-md flex-col gap-6 p-6">
 				<h1 className="text-xl font-bold text-white">날씨 배경 프리뷰</h1>
@@ -39,7 +44,7 @@ export function WeatherPreview() {
 				</div>
 
 				<div className="glass-theme flex flex-col gap-4">
-					<div className="glass-card rounded-2xl p-5">
+					<div className="glass-card rounded-2xl p-4">
 						<p className="text-sm font-medium text-(--text-primary)">글래스 카드 샘플</p>
 						<p className="mt-1 text-xs text-(--text-muted)">
 							backdrop-blur + 파티클 배경이 비치는 모습을 확인하세요

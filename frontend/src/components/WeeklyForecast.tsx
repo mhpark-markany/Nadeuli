@@ -34,7 +34,7 @@ export function WeeklyForecast({ days }: Props) {
 	if (days.length === 0) return null;
 
 	return (
-		<div className="glass-card rounded-2xl p-5">
+		<div className="glass-card rounded-2xl p-4">
 			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
 				<CalendarDays className="h-4 w-4" />
 				7일간 전망

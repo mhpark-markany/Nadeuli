@@ -11,7 +11,7 @@ export function FestivalSection({ festivals }: { festivals: Festival[] }) {
 	const hasMore = festivals.length > INITIAL_COUNT;
 
 	return (
-		<div className="glass-card rounded-2xl p-5">
+		<div className="glass-card rounded-2xl p-4">
 			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
 				<PartyPopper className="h-4 w-4" />
 				주변 행사

@@ -22,14 +22,14 @@ export function WeatherCard({ data, lat, lng }: WeatherCardProps) {
 	const lottieFile = getWeatherLottie(data.sky, data.precipitationType, isNight);
 
 	return (
-		<div className="glass-card relative overflow-hidden rounded-2xl p-5">
+		<div className="glass-card relative overflow-hidden rounded-2xl p-4">
 			{/* 배경 Lottie */}
 			<div className="pointer-events-none absolute -right-4 -top-4 opacity-30">
 				<DotLottieReact
 					src={`/lottie/${lottieFile}`}
 					loop
 					autoplay
-					style={{ width: 120, height: 120 }}
+					style={{ width: 130, height: 130 }}
 				/>
 			</div>
 			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
