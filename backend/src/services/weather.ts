@@ -1,11 +1,11 @@
 import type { DailyForecast, PrecipitationType, Sky, WbgtGrade, Weather } from "shared";
-import { buildApihubUrl, buildDataGoKrUrl, fetchJsonSafe } from "../lib/api-url.js";
+import { buildDataGoKrUrl, fetchJsonSafe } from "../lib/api-url.js";
 import { env } from "../lib/env.js";
 import { nowKST } from "../lib/kst.js";
 import { toMidRegIds } from "./geo.js";
 
 const BASE_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0";
-const MID_BASE_URL = "https://apihub.kma.go.kr/api/typ02/openApi/MidFcstInfoService";
+const MID_BASE_URL = "http://apis.data.go.kr/1360000/MidFcstInfoService";
 
 // ── 위경도 → 기상청 격자 변환 ──
 
@@ -360,34 +360,43 @@ export async function fetchWeeklyForecast(lat: number, lng: number): Promise<Dai
 	const { landRegId, taRegId } = toMidRegIds(lat, lng);
 	const tmFc = getMidFcstTmFc(now);
 
-	// 단기예보 D+0~2 + 중기예보 D+3~6 병렬 호출
+	// 단기예보 D+0~3 + 중기예보 D+4~7 병렬 호출
+	const midTaUrl = buildDataGoKrUrl(`${MID_BASE_URL}/getMidTa`, env.KMA_API_KEY, {
+		dataType: "JSON",
+		numOfRows: "1",
+		regId: taRegId,
+		tmFc,
+	});
+	const midLandUrl = buildDataGoKrUrl(`${MID_BASE_URL}/getMidLandFcst`, env.KMA_API_KEY, {
+		dataType: "JSON",
+		numOfRows: "1",
+		regId: landRegId,
+		tmFc,
+	});
+
 	const [shortDays, midTaRes, midLandRes] = await Promise.all([
 		fetchShortTermDaily(nx, ny, now),
-		fetch(
-			buildApihubUrl(`${MID_BASE_URL}/getMidTa`, env.KMA_APIHUB_AUTH_KEY, {
-				dataType: "JSON",
-				numOfRows: "1",
-				regId: taRegId,
-				tmFc,
-			}),
-		).catch(() => null),
-		fetch(
-			buildApihubUrl(`${MID_BASE_URL}/getMidLandFcst`, env.KMA_APIHUB_AUTH_KEY, {
-				dataType: "JSON",
-				numOfRows: "1",
-				regId: landRegId,
-				tmFc,
-			}),
-		).catch(() => null),
+		fetch(midTaUrl).catch((e) => {
+			console.warn("[Weekly] 중기기온 fetch 실패:", e);
+			return null;
+		}),
+		fetch(midLandUrl).catch((e) => {
+			console.warn("[Weekly] 중기육상 fetch 실패:", e);
+			return null;
+		}),
 	]);
 
 	let midDays: DailyForecast[] = [];
 	if (midTaRes?.ok && midLandRes?.ok) {
 		try {
 			midDays = parseMidTerm(await midTaRes.json(), await midLandRes.json(), now);
-		} catch {
-			/* 중기예보 파싱 실패 무시 */
+		} catch (e) {
+			console.warn("[Weekly] 중기예보 파싱 실패:", e);
 		}
+	} else if (midTaRes || midLandRes) {
+		console.warn(
+			`[Weekly] 중기예보 API 응답 실패 — Ta: ${midTaRes?.status ?? "null"}, Land: ${midLandRes?.status ?? "null"}`,
+		);
 	}
 
 	return [...shortDays, ...midDays].slice(0, 7);
@@ -450,7 +459,7 @@ async function fetchShortTermDaily(nx: number, ny: number, now: Date): Promise<D
 	return [...dayMap.entries()]
 		.filter(([date]) => date >= today)
 		.sort(([a], [b]) => a.localeCompare(b))
-		.slice(0, 3)
+		.slice(0, 4)
 		.map(([date, d]) => ({
 			date,
 			minTemp: d.temps.length > 0 ? Math.min(...d.temps) : 0,
@@ -471,7 +480,7 @@ function parseMidTerm(taData: unknown, landData: unknown, now: Date): DailyForec
 		const land = (landData as MidResponse).response.body.items.item[0];
 		if (!ta || !land) return [];
 
-		for (let d = 3; d <= 6; d++) {
+		for (let d = 4; d <= 7; d++) {
 			const minTemp = Number(ta[`taMin${d}`] ?? 0);
 			const maxTemp = Number(ta[`taMax${d}`] ?? 0);
 			const pop =
