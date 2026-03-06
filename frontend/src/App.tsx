@@ -58,6 +58,9 @@ export function App() {
 	const loading = geo.loading || dashboard.isLoading;
 	const error = dashboard.error?.message ?? null;
 
+	const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+	const todayForecast = data?.weeklyForecast?.find((f) => f.date === todayStr);
+
 	const titles = useMemo(
 		() => selectTitles(data?.weather, data?.airQuality),
 		[data?.weather, data?.airQuality],
@@ -66,7 +69,7 @@ export function App() {
 	return (
 		<div className={`mx-auto max-w-lg px-4 py-6${data && !loading ? " glass-theme" : ""}`}>
 			{/* 헤더 */}
-			<header className="mb-6 flex items-center justify-between">
+			<header className="my-3 flex items-center justify-between">
 				<h1 className="flex items-center gap-2 text-xl font-bold">
 					<RotatingText
 						texts={titles}
@@ -162,6 +165,12 @@ export function App() {
 							<h2 className="mb-2 text-base font-medium text-(--text-secondary)">
 								야외활동 적합도
 							</h2>
+							{todayForecast && (
+								<p className="-mt-2 mb-3 flex items-center justify-between text-sm text-(--text-muted)">
+									<span>최저 {todayForecast.minTemp}° / 최고 {todayForecast.maxTemp}°</span>
+									<span>체감 {data.weather.feelsLike}°</span>
+								</p>
+							)}
 							<ScoreRing score={data.score} precipitationType={data.weather.precipitationType} />
 						</div>
 					</GlassSurface>
