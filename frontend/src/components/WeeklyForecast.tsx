@@ -34,7 +34,7 @@ export function WeeklyForecast({ days }: Props) {
 	if (days.length === 0) return null;
 
 	return (
-		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
+		<div className="glass-card rounded-2xl p-5">
 			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
 				<CalendarDays className="h-4 w-4" />
 				7일간 전망
@@ -61,7 +61,7 @@ export function WeeklyForecast({ days }: Props) {
 							{/* 강수확률 */}
 							<div className="w-12 shrink-0 text-center">
 								{day.pop > 0 ? (
-									<span className="flex items-center justify-center gap-0.5 text-sm text-blue-400">
+									<span className="flex items-center justify-center gap-0.5 text-sm text-(--color-info)">
 										<Droplets className="h-3.5 w-3.5" />
 										{day.pop}%
 									</span>
@@ -72,11 +72,11 @@ export function WeeklyForecast({ days }: Props) {
 
 							{/* 기온 바 */}
 							<div className="flex flex-1 items-center gap-2">
-								<span className="w-8 text-right text-sm text-blue-400">{day.minTemp}°</span>
+								<span className="w-8 text-right text-sm text-(--color-info)">{day.minTemp}°</span>
 								<div className="relative h-2 flex-1 overflow-hidden rounded-full bg-(--bg-muted)">
 									<TempBar min={day.minTemp} max={day.maxTemp} rangeMin={days} />
 								</div>
-								<span className="w-8 text-sm text-orange-400">{day.maxTemp}°</span>
+								<span className="w-8 text-sm text-orange-300">{day.maxTemp}°</span>
 							</div>
 						</div>
 					);

@@ -46,7 +46,7 @@ export function PlaceSection({ lat, lng, initialPlaces }: Props) {
 	}, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
 	return (
-		<div className="rounded-2xl bg-(--bg-card) p-5 shadow-sm">
+		<div className="glass-card rounded-2xl p-5">
 			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
 				<MapPin className="h-4 w-4" />
 				추천 장소

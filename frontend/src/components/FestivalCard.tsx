@@ -19,7 +19,7 @@ export function FestivalCard({ festival }: { festival: Festival }) {
 	const isOngoing = start <= today;
 
 	return (
-		<div className="flex items-start gap-3 rounded-xl bg-(--bg-card) p-4 shadow-sm">
+		<div className="flex items-start gap-3 rounded-xl bg-(--bg-card) p-4">
 			{festival.image ? (
 				<img
 					src={festival.image}
@@ -43,7 +43,7 @@ export function FestivalCard({ festival }: { festival: Festival }) {
 					)}
 					{festival.fee && (
 						<span
-							className={`rounded-full px-1.5 py-0.5 ${isFree(festival.fee) ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" : "bg-orange-500/10 text-orange-600 dark:text-orange-400"}`}
+							className={`rounded-full px-1.5 py-0.5 ${isFree(festival.fee) ? "bg-blue-500/20 text-(--color-info)" : "bg-orange-500/20 text-(--color-warning)"}`}
 						>
 							{isFree(festival.fee) ? "무료" : "유료"}
 						</span>

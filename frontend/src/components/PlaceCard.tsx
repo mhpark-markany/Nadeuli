@@ -14,7 +14,7 @@ export function PlaceCard({ place }: { place: Place }) {
 	const Icon = info.icon;
 
 	return (
-		<div className="flex min-w-[140px] shrink-0 flex-col rounded-xl bg-(--bg-card) p-4 shadow-sm">
+		<div className="flex min-w-[140px] shrink-0 flex-col rounded-xl bg-(--bg-card) p-4">
 			{place.imageUrl ? (
 				<img
 					src={place.imageUrl}

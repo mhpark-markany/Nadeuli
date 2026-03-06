@@ -102,7 +102,7 @@ export function ChatPanel({ lat, lng, userId }: ChatPanelProps) {
 	};
 
 	return (
-		<div className="rounded-2xl bg-(--bg-card) shadow-sm">
+		<div className="glass-card rounded-2xl shadow-sm">
 			<div className="flex items-center justify-between border-b border-(--border-default) px-5 py-3">
 				<h3 className="flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
 					<MessageCircle className="h-4 w-4" />

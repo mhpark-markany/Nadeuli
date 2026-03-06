@@ -6,9 +6,9 @@ import { getWeatherLottie, isNightTime } from "../lib/weather";
 const WBGT_COLOR: Record<string, string> = {
 	안전: "text-(--color-success)",
 	주의: "text-(--color-warning)",
-	경계: "text-orange-500",
+	경계: "text-orange-400",
 	위험: "text-(--color-error)",
-	매우위험: "text-red-700",
+	매우위험: "text-(--color-error)",
 };
 
 interface WeatherCardProps {
@@ -22,7 +22,7 @@ export function WeatherCard({ data, lat, lng }: WeatherCardProps) {
 	const lottieFile = getWeatherLottie(data.sky, data.precipitationType, isNight);
 
 	return (
-		<div className="relative overflow-hidden rounded-2xl bg-(--bg-card) p-5 shadow-sm">
+		<div className="glass-card relative overflow-hidden rounded-2xl p-5">
 			{/* 배경 Lottie */}
 			<div className="pointer-events-none absolute -right-4 -top-4 opacity-30">
 				<DotLottieReact

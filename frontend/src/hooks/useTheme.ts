@@ -1,13 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark" | "system";
+type Resolved = "light" | "dark";
 
-function getSystemTheme(): "light" | "dark" {
+function getSystemTheme(): Resolved {
 	return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-function applyTheme(theme: Theme) {
-	document.documentElement.style.colorScheme = theme === "system" ? "" : theme;
+function subscribeSystemTheme(cb: () => void) {
+	const mq = window.matchMedia("(prefers-color-scheme: dark)");
+	mq.addEventListener("change", cb);
+	return () => mq.removeEventListener("change", cb);
+}
+
+function apply(resolved: Resolved) {
+	const el = document.documentElement;
+	el.style.colorScheme = resolved;
+	el.classList.toggle("dark", resolved === "dark");
 }
 
 export function useTheme() {
@@ -16,17 +25,15 @@ export function useTheme() {
 		return stored ?? "system";
 	});
 
+	const systemTheme = useSyncExternalStore(subscribeSystemTheme, getSystemTheme);
+	const resolvedTheme: Resolved = theme === "system" ? systemTheme : theme;
+
 	useEffect(() => {
-		applyTheme(theme);
+		apply(resolvedTheme);
 		localStorage.setItem("theme", theme);
-	}, [theme]);
+	}, [theme, resolvedTheme]);
 
 	const setTheme = (t: Theme) => setThemeState(t);
 
-	const toggle = () => {
-		const current = theme === "system" ? getSystemTheme() : theme;
-		setThemeState(current === "dark" ? "light" : "dark");
-	};
-
-	return { theme, setTheme, toggle };
+	return { theme, resolvedTheme, setTheme };
 }

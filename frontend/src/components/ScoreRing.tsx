@@ -116,12 +116,12 @@ export function ScoreRing({ score, precipitationType }: ScoreRingProps) {
 			</div>
 
 			{score.wbgtOverride && (
-				<span className="rounded-full bg-red-500/10 px-2 py-0.5 text-xs text-(--color-error)">
+				<span className="rounded-full bg-red-500/20 px-2 py-0.5 text-xs text-(--color-error)">
 					🌡️ 열 스트레스 경고
 				</span>
 			)}
 			{score.healthBlockActive && (
-				<span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-xs text-orange-500">
+				<span className="rounded-full bg-orange-500/20 px-2 py-0.5 text-xs text-(--color-warning)">
 					⚠️ 보건 가이드라인 차단
 				</span>
 			)}

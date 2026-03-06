@@ -1,5 +1,6 @@
 import { MapPin, MapPinOff } from "lucide-react";
 import { useMemo } from "react";
+import GlassSurface from "../shared/components/GlassSurface";
 import RotatingText from "../shared/components/RotatingText";
 import { AirQualityCard } from "./components/AirQualityCard";
 import { ChatPanel } from "./components/ChatPanel";
@@ -10,6 +11,7 @@ import { PlaceSection } from "./components/PlaceSection";
 import { ScoreRing } from "./components/ScoreRing";
 import { WeatherCard } from "./components/WeatherCard";
 import { WeatherLoader } from "./components/WeatherLoader";
+import { WeatherParticleBackground } from "./components/WeatherParticleBackground";
 import { WeeklyForecast } from "./components/WeeklyForecast";
 import { useAddress } from "./hooks/use-address";
 import { useDashboard } from "./hooks/use-dashboard";
@@ -19,6 +21,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useGeolocation } from "./hooks/useGeolocation";
 import { useTheme } from "./hooks/useTheme";
 import { selectTitles } from "./lib/naduri-titles";
+import { getTimeOfDay } from "./lib/weather";
 
 const LOADING_TEXTS = [
 	"구름 위에서 날씨 훔쳐보는 중 ☁️",
@@ -42,7 +45,7 @@ function shuffle<T>(arr: readonly T[]): T[] {
 
 export function App() {
 	const geo = useGeolocation();
-	const { theme, setTheme } = useTheme();
+	const { theme, resolvedTheme, setTheme } = useTheme();
 	const { user } = useAuth();
 	const dashboard = useDashboard(geo.lat, geo.lng);
 	const places = usePlaces(geo.lat, geo.lng);
@@ -61,7 +64,7 @@ export function App() {
 	);
 
 	return (
-		<div className="mx-auto max-w-lg px-4 py-6">
+		<div className={`mx-auto max-w-lg px-4 py-6${data && !loading ? " glass-theme" : ""}`}>
 			{/* 헤더 */}
 			<header className="mb-6 flex items-center justify-between">
 				<h1 className="flex items-center gap-2 text-xl font-bold">
@@ -140,14 +143,28 @@ export function App() {
 				</div>
 			)}
 
+			{/* 날씨 배경 */}
+			{data && !loading && (
+				<WeatherParticleBackground
+					timeOfDay={geo.lat != null && geo.lng != null ? getTimeOfDay(geo.lat, geo.lng) : "day"}
+					sky={data.weather.sky}
+					precipitationType={data.weather.precipitationType}
+					isDark={resolvedTheme === "dark"}
+				/>
+			)}
+
 			{/* 대시보드 */}
 			{data && !loading && (
 				<div className="stagger-in space-y-4">
 					{/* 적합도 점수 */}
-					<div className="rounded-2xl bg-(--bg-card) p-6 shadow-sm">
-						<h2 className="mb-2 text-base font-medium text-(--text-secondary)">야외활동 적합도</h2>
-						<ScoreRing score={data.score} precipitationType={data.weather.precipitationType} />
-					</div>
+					<GlassSurface borderRadius={16} className="!w-full !h-auto p-6">
+						<div className="w-full">
+							<h2 className="mb-2 text-base font-medium text-(--text-secondary)">
+								야외활동 적합도
+							</h2>
+							<ScoreRing score={data.score} precipitationType={data.weather.precipitationType} />
+						</div>
+					</GlassSurface>
 
 					{/* AI 채팅 */}
 					{geo.lat != null && geo.lng != null && (

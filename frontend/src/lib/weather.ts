@@ -6,6 +6,21 @@ export function getSunTimes(lat: number, lng: number, date = new Date()) {
 	return { sunrise: times.sunrise, sunset: times.sunset };
 }
 
+export type TimeOfDay = "dawn" | "day" | "evening" | "night";
+
+export function getTimeOfDay(lat: number, lng: number, date = new Date()): TimeOfDay {
+	const times = SunCalc.getTimes(date, lat, lng);
+	const t = date.getTime();
+	const sunrise = times.sunrise.getTime();
+	const sunset = times.sunset.getTime();
+	const hour = 60 * 60 * 1000;
+
+	if (t >= sunrise - hour && t < sunrise + hour) return "dawn";
+	if (t >= sunset - hour && t < sunset + hour) return "evening";
+	if (t >= sunrise + hour && t < sunset - hour) return "day";
+	return "night";
+}
+
 export function isNightTime(lat: number, lng: number, date = new Date()): boolean {
 	const { sunrise, sunset } = getSunTimes(lat, lng, date);
 	return date < sunrise || date > sunset;
