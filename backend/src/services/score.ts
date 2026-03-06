@@ -28,7 +28,7 @@ export function calculateOutdoorScore(input: ScoreInput): OutdoorScore {
 	const airScore = caiToScore(air.cai);
 	const weatherScore = calcWeatherScore(weather, hourlyWeather);
 	const uvScore = calcUVScore(lifeIndex.uvIndex);
-	const seasonalScore = calcSeasonalScore(lifeIndex);
+	const seasonalScore = calcSeasonalScore();
 
 	// [2단계] 기본 점수 = 가중 합산
 	let total = airScore * 0.45 + weatherScore * 0.3 + uvScore * 0.12 + seasonalScore * 0.13;
@@ -51,6 +51,9 @@ export function calculateOutdoorScore(input: ScoreInput): OutdoorScore {
 	// [4단계] 보건 가이드라인 강제 차단
 	const pm25Threshold = isSensitiveGroup ? 30 : 36;
 	const healthBlockActive = air.pm10Value >= 81 || air.pm25Value >= pm25Threshold;
+	if (healthBlockActive) {
+		total = Math.min(total, 39);
+	}
 
 	// [5단계] 계절성 페널티 (곱연산자)
 	const month = nowKST().getMonth() + 1;
@@ -80,7 +83,14 @@ export function calculateOutdoorScore(input: ScoreInput): OutdoorScore {
 		wbgtOverride,
 		healthBlockActive,
 		grade: scoreToGrade(total),
-		hourlyForecast: calcHourlyScores(hourlyWeather, airScore),
+		hourlyForecast: calcHourlyScores(hourlyWeather, {
+			airScore,
+			uvScore,
+			seasonalScore,
+			seasonalPenalty,
+			wbgt: weather.wbgt,
+			healthBlockActive,
+		}),
 	};
 }
 
@@ -88,9 +98,9 @@ export function calculateOutdoorScore(input: ScoreInput): OutdoorScore {
 
 function caiToScore(cai: number): number {
 	if (cai <= 50) return 100;
-	if (cai <= 100) return 70;
-	if (cai <= 250) return 30;
-	return 0;
+	if (cai <= 100) return 100 - ((cai - 50) / 50) * 30; // 100→70
+	if (cai <= 250) return 70 - ((cai - 100) / 150) * 40; // 70→30
+	return Math.max(0, 30 - ((cai - 250) / 250) * 30); // 30→0
 }
 
 // ── 기상 점수 (기온 쾌적도 + 강수 + 풍속) ──
@@ -107,13 +117,15 @@ function calcWeatherScore(w: Weather, hourlyWeather: HourlyWeather[]): number {
 	else if (temp > 28) score -= 15;
 
 	// 강수
-	if (w.precipitationType !== "없음") score -= 30;
-	if (w.precipitation > 5) score -= 20;
-
-	// 오늘 강수확률 최대값 반영 (현재 안 오더라도 올 예정이면 감점)
-	const maxPop = hourlyWeather.reduce((max, h) => Math.max(max, h.pop), 0);
-	if (maxPop >= 70) score -= 20;
-	else if (maxPop >= 50) score -= 10;
+	if (w.precipitationType !== "없음") {
+		score -= 30;
+		if (w.precipitation > 5) score -= 20;
+	} else {
+		// 현재 안 오지만 올 예정이면 감점
+		const maxPop = hourlyWeather.reduce((max, h) => Math.max(max, h.pop), 0);
+		if (maxPop >= 70) score -= 20;
+		else if (maxPop >= 50) score -= 10;
+	}
 
 	// 풍속 (10m/s 이상 감점)
 	if (w.windSpeed > 14) score -= 30;
@@ -132,14 +144,16 @@ function calcUVScore(uv: number): number {
 	return 10;
 }
 
-// ── 계절성 기본 점수 (생활기상지수 기반) ──
+// ── 계절성 기본 점수 (월별 기온 쾌적도) ──
+// 생활지수(꽃가루·대기정체 등)는 seasonalPenalty에서 별도 반영
 
-function calcSeasonalScore(li: LifeIndex): number {
-	let score = 100;
-	if (li.pollenRisk != null && li.pollenRisk >= 3) score -= 20;
-	if (li.airStagnation != null && li.airStagnation >= 75) score -= 15;
-	if (li.foodPoisoning != null && li.foodPoisoning >= 70) score -= 10;
-	return Math.max(0, score);
+function calcSeasonalScore(): number {
+	const month = nowKST().getMonth() + 1;
+	if ([4, 5, 9, 10].includes(month)) return 100; // 봄·가을
+	if ([6].includes(month)) return 85; // 초여름
+	if ([7, 8].includes(month)) return 70; // 한여름
+	if ([11, 3].includes(month)) return 80; // 환절기
+	return 65; // 한겨울 (12, 1, 2)
 }
 
 // ── 점수 → 등급 ──
@@ -154,7 +168,16 @@ function scoreToGrade(score: number): ScoreGrade {
 
 // ── 시간대별 점수 산출 ──
 
-function calcHourlyScores(hourly: HourlyWeather[], airScore: number): HourlyScore[] {
+interface HourlyContext {
+	airScore: number;
+	uvScore: number;
+	seasonalScore: number;
+	seasonalPenalty: number;
+	wbgt: number;
+	healthBlockActive: boolean;
+}
+
+function calcHourlyScores(hourly: HourlyWeather[], ctx: HourlyContext): HourlyScore[] {
 	return hourly.map((h) => {
 		let ws = 100;
 		// 기온
@@ -172,7 +195,21 @@ function calcHourlyScores(hourly: HourlyWeather[], airScore: number): HourlyScor
 		// 하늘
 		if (h.sky === 4) ws -= 5;
 
-		const score = Math.round(Math.max(0, Math.min(100, airScore * 0.45 + Math.max(0, ws) * 0.55)));
+		// 메인 점수와 동일한 가중치
+		let score =
+			ctx.airScore * 0.45 + Math.max(0, ws) * 0.3 + ctx.uvScore * 0.12 + ctx.seasonalScore * 0.13;
+
+		// WBGT 오버라이드
+		if (ctx.wbgt > 28) score = Math.min(score, ctx.wbgt > 31 ? 20 : 49);
+		else if (ctx.wbgt > 25) score *= 0.7;
+		else if (ctx.wbgt > 21) score *= 0.9;
+
+		// 보건 차단
+		if (ctx.healthBlockActive) score = Math.min(score, 39);
+
+		// 계절성 페널티
+		score = Math.round(Math.max(0, Math.min(100, score * ctx.seasonalPenalty)));
+
 		const sky: Sky = h.sky === 4 ? "흐림" : h.sky === 3 ? "구름많음" : "맑음";
 		const precipitationType: PrecipitationType =
 			h.pty === 1 ? "비" : h.pty === 2 ? "비/눈" : h.pty === 3 ? "눈" : "없음";
