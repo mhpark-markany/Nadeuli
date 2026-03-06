@@ -53,6 +53,8 @@ export interface HourlyScore {
 	hour: number;
 	score: number;
 	grade: ScoreGrade;
+	sky: Sky;
+	precipitationType: PrecipitationType;
 }
 
 export interface OutdoorScore {

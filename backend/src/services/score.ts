@@ -1,4 +1,13 @@
-import type { AirQuality, HourlyScore, LifeIndex, OutdoorScore, ScoreGrade, Weather } from "shared";
+import type {
+	AirQuality,
+	HourlyScore,
+	LifeIndex,
+	OutdoorScore,
+	PrecipitationType,
+	ScoreGrade,
+	Sky,
+	Weather,
+} from "shared";
 import { nowKST } from "../lib/kst.js";
 import type { HourlyWeather } from "./weather.js";
 
@@ -164,6 +173,9 @@ function calcHourlyScores(hourly: HourlyWeather[], airScore: number): HourlyScor
 		if (h.sky === 4) ws -= 5;
 
 		const score = Math.round(Math.max(0, Math.min(100, airScore * 0.45 + Math.max(0, ws) * 0.55)));
-		return { hour: h.hour, score, grade: scoreToGrade(score) };
+		const sky: Sky = h.sky === 4 ? "흐림" : h.sky === 3 ? "구름많음" : "맑음";
+		const precipitationType: PrecipitationType =
+			h.pty === 1 ? "비" : h.pty === 2 ? "비/눈" : h.pty === 3 ? "눈" : "없음";
+		return { hour: h.hour, score, grade: scoreToGrade(score), sky, precipitationType };
 	});
 }

@@ -1,6 +1,14 @@
-import type { HourlyScore } from "shared";
+import type { HourlyScore, PrecipitationType, Sky } from "shared";
 import { gradeColor } from "../lib/colors";
 import { getSunTimes } from "../lib/weather";
+
+function weatherIcon(sky: Sky, pty: PrecipitationType): string {
+	if (pty === "비" || pty === "비/눈") return "🌧️";
+	if (pty === "눈") return "🌨️";
+	if (sky === "흐림") return "☁️";
+	if (sky === "구름많음") return "⛅";
+	return "☀️";
+}
 
 const POINT_GAP = 64;
 const PADDING_X = 24;
@@ -28,6 +36,13 @@ export function HourlyTimeline({ hours, lat, lng }: Props) {
 	const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
 
 	const gradientPath = `${linePath} L${points[points.length - 1].x},${PADDING_TOP + CHART_H} L${points[0].x},${PADDING_TOP + CHART_H} Z`;
+
+	// 날씨 변화 포인트 감지
+	const weatherChanges = points.filter(
+		(p, i) =>
+			i > 0 &&
+			(p.sky !== points[i - 1].sky || p.precipitationType !== points[i - 1].precipitationType),
+	);
 
 	// 일출/일몰 마커 계산
 	const { sunrise, sunset } = getSunTimes(lat, lng);
@@ -109,8 +124,8 @@ export function HourlyTimeline({ hours, lat, lng }: Props) {
 								fill="var(--text-muted)"
 							>
 								{p.hour >= 24
-								? `내일 ${String(p.hour - 24).padStart(2, "0")}시`
-								: `${String(p.hour).padStart(2, "0")}시`}
+									? `내일 ${String(p.hour - 24).padStart(2, "0")}시`
+									: `${String(p.hour).padStart(2, "0")}시`}
 							</text>
 						</g>
 					))}
@@ -162,6 +177,13 @@ export function HourlyTimeline({ hours, lat, lng }: Props) {
 							</text>
 						</g>
 					)}
+
+					{/* 날씨 변화 마커 */}
+					{weatherChanges.map((p) => (
+						<text key={`wx-${p.hour}`} x={p.x} y={p.y - 24} textAnchor="middle" className="text-sm">
+							{weatherIcon(p.sky, p.precipitationType)}
+						</text>
+					))}
 				</svg>
 			</div>
 		</div>
