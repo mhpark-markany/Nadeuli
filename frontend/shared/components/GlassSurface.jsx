@@ -135,20 +135,6 @@ const GlassSurface = ({
   }, []);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      setTimeout(updateDisplacementMap, 0);
-    });
-
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
     setTimeout(updateDisplacementMap, 0);
   }, [width, height]);
 
@@ -161,10 +147,12 @@ const GlassSurface = ({
       return false;
     }
 
-    const isWebkit = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-    const isFirefox = /Firefox/.test(navigator.userAgent);
+    const ua = navigator.userAgent;
+    const isWebkit = /Safari/.test(ua) && !/Chrome/.test(ua);
+    const isFirefox = /Firefox/.test(ua);
+    const isMobile = /Android|iPhone|iPad|iPod/.test(ua);
 
-    if (isWebkit || isFirefox) {
+    if (isWebkit || isFirefox || isMobile) {
       return false;
     }
 
