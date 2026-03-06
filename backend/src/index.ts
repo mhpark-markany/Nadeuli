@@ -15,7 +15,7 @@ import { weatherRoute } from "./routes/weather.js";
 
 const app = new Hono();
 
-app.use("*", cors({ origin: env.CORS_ORIGIN }));
+app.use("*", cors({ origin: env.CORS_ORIGINS }));
 
 app.route("/api/air-quality", airQualityRoute);
 app.route("/api/weather", weatherRoute);

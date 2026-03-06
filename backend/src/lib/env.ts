@@ -15,7 +15,7 @@ type EnvKey = (typeof requiredKeys)[number];
 interface Env extends Record<EnvKey, string> {
 	REDIS_URL: string;
 	PORT: number;
-	CORS_ORIGIN: string;
+	CORS_ORIGINS: string[];
 }
 
 function loadEnv(): Env {
@@ -38,7 +38,7 @@ function loadEnv(): Env {
 		DATABASE_URL: process.env.DATABASE_URL ?? process.env.DATABASE_PUBLIC_URL ?? "",
 		REDIS_URL: process.env.REDIS_URL ?? "redis://localhost:6379",
 		PORT: Number(process.env.PORT ?? "3000"),
-		CORS_ORIGIN: process.env.CORS_ORIGIN ?? "*",
+		CORS_ORIGINS: (process.env.CORS_ORIGIN ?? "*").split(",").map((s) => s.trim()),
 	};
 }
 
