@@ -160,7 +160,7 @@ export function App() {
 			{data && !loading && (
 				<div className="stagger-in space-y-4">
 					{/* 적합도 점수 */}
-					<GlassSurface borderRadius={16} className="!w-full !h-auto p-3">
+					<GlassSurface borderRadius={16} className="w-full! h-auto! p-3">
 						<div className="w-full">
 							<h2 className="mb-2 text-base font-medium text-(--text-secondary)">
 								야외활동 적합도
