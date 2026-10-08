@@ -1,3 +1,4 @@
+import { waitUntil } from "@vercel/functions";
 import { Hono } from "hono";
 import type { AIRecommendation, ApiResponse, AskRequest, AskResponse } from "shared";
 import { cacheGet, cacheSet } from "../lib/cache.js";
@@ -92,9 +93,12 @@ askRoute.post("/", async (c) => {
 		await cacheSet(cacheKey, recommendation, CACHE_TTL);
 
 		// 로그인 사용자면 비동기로 메모리 추출 (응답 지연 없음)
+		// Vercel 함수는 응답 뒤 작업을 끊을 수 있어서 waitUntil 로 수명을 늘린다.
 		if (userId) {
-			extractMemories(userId, question, recommendation.summary, userMemories ?? []).catch((e) =>
-				console.error("[Memory] 추출 실패:", e),
+			waitUntil(
+				extractMemories(userId, question, recommendation.summary, userMemories ?? []).catch((e) =>
+					console.error("[Memory] 추출 실패:", e),
+				),
 			);
 		}
 

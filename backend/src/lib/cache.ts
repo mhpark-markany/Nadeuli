@@ -1,9 +1,11 @@
-import Redis from "ioredis";
+import { Redis } from "ioredis";
 import { env } from "./env.js";
 
 let redis: Redis | null = null;
 
 function getRedis(): Redis | null {
+	// REDIS_URL 이 없으면 연결을 시도하지 않는다. 시도마다 재연결 루프가 남기 때문이다.
+	if (!env.REDIS_URL) return null;
 	if (redis) return redis;
 	try {
 		redis = new Redis(env.REDIS_URL, { maxRetriesPerRequest: 1, lazyConnect: true });

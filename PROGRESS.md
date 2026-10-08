@@ -157,10 +157,13 @@ npx @biomejs/biome check .
 - 로딩 스켈레톤 UI
 
 ### 4-5. 배포
-- Cloudflare Pages (프론트엔드)
-- Railway 또는 Fly.io (백엔드)
-- Redis Cloud (캐시)
-- PostgreSQL (Supabase 또는 Railway)
+- Vercel 프로젝트 하나 (Root Directory `frontend`)
+  - 프론트엔드: Vite 정적 빌드
+  - 백엔드: `frontend/api/index.ts` 가 `backend/src/app.ts` 의 Hono 앱을 Vercel 함수(`sin1`)로 돌린다. `frontend/vercel.json` 의 rewrites 가 `/api/*`, `/health` 를 이 함수로 보낸다
+  - 프론트는 같은 주소의 `/api` 를 부르므로 `VITE_API_URL` 은 비워 둔다
+- PostgreSQL: Neon (Vercel Marketplace, 싱가포르). 빌드 때 `prisma migrate deploy` 를 돌린다
+- Redis: 쓰지 않는다 (`REDIS_URL` 을 비우면 인메모리 캐시)
+- 이전 구성(Railway, Docker)은 2026-10 체험 기간 종료로 멈췄다. `Dockerfile` 은 정리 전까지 남겨 둔다
 
 ---
 
