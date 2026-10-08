@@ -161,6 +161,7 @@ npx @biomejs/biome check .
   - 프론트엔드: Vite 정적 빌드
   - 백엔드: `frontend/api/index.ts` 가 `backend/src/app.ts` 의 Hono 앱을 Vercel 함수(`sin1`)로 돌린다. `frontend/vercel.json` 의 rewrites 가 `/api/*`, `/health` 를 이 함수로 보낸다
   - 프론트는 같은 주소의 `/api` 를 부르므로 `VITE_API_URL` 은 비워 둔다
+  - `CORS_ORIGIN=https://nadeuli.minheum.dev` (Production·Preview). 다른 사이트의 브라우저 코드가 API(특히 Gemini 무료 한도)를 쓰지 못하게 막는다
 - PostgreSQL: Neon (Vercel Marketplace, 싱가포르). 빌드 때 `prisma migrate deploy` 를 돌린다
 - Redis: 쓰지 않는다 (`REDIS_URL` 을 비우면 인메모리 캐시)
 - 이전 구성(Railway, Docker)은 2026-10 체험 기간 종료로 멈췄고, 2026-10-08 에 `Dockerfile` 과 Railway 전용 설정을 지웠다
