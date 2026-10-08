@@ -65,15 +65,25 @@ interface AirApiResponse {
 	response: { body: { items: AirApiItem[] } };
 }
 
+// data.go.kr 게이트웨이는 장애 때 30초를 기다린 뒤 504 를 준다. 화면과 AI 답변이 같이 묶이지 않게 일찍 끊는다.
+const AIRKOREA_TIMEOUT_MS = 8000;
+
 export async function fetchAirQuality(stationName: string): Promise<AirQuality> {
 	const url = buildDataGoKrUrl(`${BASE_URL}/getMsrstnAcctoRltmMesureDnsty`, env.AIRKOREA_API_KEY, {
 		returnType: "json",
 		stationName,
 		dataTerm: "DAILY",
 		numOfRows: "1",
+		// ver 를 빼면 PM2.5 필드가 응답에 없어서 pm25Value 가 항상 0 이 된다.
+		ver: "1.3",
 	});
 
-	const res = await fetch(url);
+	const res = await fetch(url, { signal: AbortSignal.timeout(AIRKOREA_TIMEOUT_MS) }).catch((e) => {
+		if (e instanceof Error && e.name === "TimeoutError") {
+			throw new Error(`에어코리아 응답 지연 (${AIRKOREA_TIMEOUT_MS / 1000}초 초과)`);
+		}
+		throw e;
+	});
 	const data = await fetchJsonSafe<AirApiResponse>(res);
 	const item = data.response.body.items[0];
 	if (!item) throw new Error("대기질 데이터 없음");

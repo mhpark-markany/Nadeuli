@@ -1,4 +1,4 @@
-import { type FunctionDeclaration, GoogleGenAI, Type } from "@google/genai";
+import { type FunctionDeclaration, GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 import type { AIRecommendation } from "shared";
 import { env } from "../lib/env.js";
 import { fetchAirQuality, findNearestStation } from "./air-quality.js";
@@ -345,22 +345,32 @@ const responseSchema = {
 
 const MAX_TOOL_ROUNDS = 5;
 const MAX_RETRIES = 3;
+// thinking 토큰도 maxOutputTokens 에 포함되므로 2048 이면 JSON 이 중간에 잘린다.
+const MAX_OUTPUT_TOKENS = 8192;
 
-async function sendWithRetry(
-	chat: ReturnType<typeof ai.chats.create>,
-	message: Parameters<typeof chat.sendMessage>[0],
-) {
+/** 429(요청 한도)와 503(일시적 과부하)만 다시 시도한다. */
+async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
 	for (let attempt = 0; ; attempt++) {
 		try {
-			return await chat.sendMessage(message);
+			return await fn();
 		} catch (e) {
-			if (attempt >= MAX_RETRIES || !(e instanceof Error) || !e.message.includes("429")) throw e;
-			const match = e.message.match(/retry in ([\d.]+)s/i);
-			const delay = match ? Math.ceil(Number(match[1])) * 1000 + 2000 : 60_000;
-			console.log(
-				`[Gemini] 429 rate limit — ${Math.round(delay / 1000)}초 후 재시도 (${attempt + 1}/${MAX_RETRIES})`,
-			);
-			await new Promise((r) => setTimeout(r, delay));
+			if (attempt >= MAX_RETRIES || !(e instanceof Error)) throw e;
+			if (e.message.includes("429")) {
+				const match = e.message.match(/retry in ([\d.]+)s/i);
+				const delay = match ? Math.ceil(Number(match[1])) * 1000 + 2000 : 60_000;
+				console.log(
+					`[Gemini] 429 rate limit — ${Math.round(delay / 1000)}초 후 재시도 (${attempt + 1}/${MAX_RETRIES})`,
+				);
+				await new Promise((r) => setTimeout(r, delay));
+			} else if (e.message.includes("503") || e.message.includes("UNAVAILABLE")) {
+				const delay = 1000 * 2 ** attempt;
+				console.log(
+					`[Gemini] 503 과부하 — ${delay / 1000}초 후 재시도 (${attempt + 1}/${MAX_RETRIES})`,
+				);
+				await new Promise((r) => setTimeout(r, delay));
+			} else {
+				throw e;
+			}
 		}
 	}
 }
@@ -377,7 +387,7 @@ export async function askGemini(input: AskGeminiInput): Promise<AIRecommendation
 		config: {
 			systemInstruction: systemWithMemory,
 			tools: [{ functionDeclarations: FUNCTION_DECLARATIONS }],
-			maxOutputTokens: 2048,
+			maxOutputTokens: MAX_OUTPUT_TOKENS,
 		},
 	});
 
@@ -387,7 +397,7 @@ export async function askGemini(input: AskGeminiInput): Promise<AIRecommendation
 질문: ${input.question}`;
 
 	console.log("[Gemini] 질문:", input.question);
-	let result = await sendWithRetry(chat, { message: prompt });
+	let result = await withRetry(() => chat.sendMessage({ message: prompt }));
 
 	const toolResults: Record<string, unknown> = {};
 
@@ -413,15 +423,18 @@ export async function askGemini(input: AskGeminiInput): Promise<AIRecommendation
 			}),
 		);
 
-		result = await sendWithRetry(chat, {
-			message: functionResponses.map((fr) => ({ functionResponse: fr })),
-		});
+		result = await withRetry(() =>
+			chat.sendMessage({
+				message: functionResponses.map((fr) => ({ functionResponse: fr })),
+			}),
+		);
 	}
 
 	// 2단계: 수집된 데이터로 구조화된 응답 생성 (tools 없이, responseSchema 적용)
-	const structured = await ai.models.generateContent({
-		model: "gemini-3-flash-preview",
-		contents: `${systemWithMemory}
+	const structured = await withRetry(() =>
+		ai.models.generateContent({
+			model: "gemini-3-flash-preview",
+			contents: `${systemWithMemory}
 
 ## 사용자 질문
 ${prompt}
@@ -430,15 +443,27 @@ ${prompt}
 ${JSON.stringify(toolResults, null, 2)}
 
 위 데이터를 기반으로 응답을 생성하세요.`,
-		config: {
-			maxOutputTokens: 2048,
-			responseMimeType: "application/json",
-			responseSchema,
-		},
-	});
+			config: {
+				maxOutputTokens: MAX_OUTPUT_TOKENS,
+				// 데이터는 이미 모였고 JSON 으로 정리만 하면 되므로 깊게 생각할 필요가 없다.
+				thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+				responseMimeType: "application/json",
+				responseSchema,
+			},
+		}),
+	);
 
 	const text = structured.text ?? "";
-	console.log("[Gemini] 최종 응답:", text);
+	const finishReason = structured.candidates?.[0]?.finishReason;
+	console.log(
+		`[Gemini] 최종 응답 (finishReason=${finishReason}, thoughts=${structured.usageMetadata?.thoughtsTokenCount ?? 0}):`,
+		text,
+	);
 
-	return JSON.parse(text) as AIRecommendation;
+	try {
+		return JSON.parse(text) as AIRecommendation;
+	} catch (e) {
+		const msg = e instanceof Error ? e.message : String(e);
+		throw new Error(`최종 응답 JSON 파싱 실패 (finishReason=${finishReason}): ${msg}`);
+	}
 }
