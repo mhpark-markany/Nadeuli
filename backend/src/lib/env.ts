@@ -38,7 +38,7 @@ function loadEnv(): Env {
 		KAKAO_REST_API_KEY: process.env.KAKAO_REST_API_KEY ?? "",
 		KAKAO_CLIENT_SECRET: process.env.KAKAO_CLIENT_SECRET ?? "",
 		JWT_SECRET: process.env.JWT_SECRET ?? "",
-		DATABASE_URL: process.env.DATABASE_URL ?? process.env.DATABASE_PUBLIC_URL ?? "",
+		DATABASE_URL: process.env.DATABASE_URL ?? "",
 		// 비우면 Redis 없이 인메모리 캐시만 쓴다 (Vercel 배포 기본값).
 		REDIS_URL: process.env.REDIS_URL ?? "",
 		PORT: Number(process.env.PORT ?? "3000"),

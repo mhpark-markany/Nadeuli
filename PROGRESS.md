@@ -163,7 +163,7 @@ npx @biomejs/biome check .
   - 프론트는 같은 주소의 `/api` 를 부르므로 `VITE_API_URL` 은 비워 둔다
 - PostgreSQL: Neon (Vercel Marketplace, 싱가포르). 빌드 때 `prisma migrate deploy` 를 돌린다
 - Redis: 쓰지 않는다 (`REDIS_URL` 을 비우면 인메모리 캐시)
-- 이전 구성(Railway, Docker)은 2026-10 체험 기간 종료로 멈췄다. `Dockerfile` 은 정리 전까지 남겨 둔다
+- 이전 구성(Railway, Docker)은 2026-10 체험 기간 종료로 멈췄고, 2026-10-08 에 `Dockerfile` 과 Railway 전용 설정을 지웠다
 
 ---
 
