@@ -29,7 +29,7 @@ nadeuli/
 │   │   ├── geo.ts                   # TM 좌표 변환 (proj4) + 행정동 코드 매핑
 │   │   ├── places.ts                # TourAPI 4.0 위치 기반 장소 조회
 │   │   ├── festivals.ts             # 전국축제표준데이터 API 연동
-│   │   ├── gemini.ts                # [Phase 3] Gemini 2.0 Flash 연동 + 프롬프트 구성
+│   │   ├── gemini.ts                # [Phase 3] Gemini 연동 (데이터 선수집 + 1회 호출) + 프롬프트 구성
 │   │   └── fallback.ts              # [Phase 3] 규칙 기반 폴백 (AI 실패/한도 소진 시)
 │   └── routes/
 │       ├── air-quality.ts           # GET /api/air-quality?lat=&lng=
@@ -99,9 +99,9 @@ npx @biomejs/biome check .
 
 ## Phase 3에서 구현된 핵심 로직
 
-- **Gemini 2.0 Flash 연동**: `@google/generative-ai` SDK, `gemini-2.0-flash` 모델, JSON structured output
+- **Gemini 연동**: `@google/genai` SDK, 기본 모델 `gemini-3.1-flash-lite` (`GEMINI_MODEL` 로 변경), JSON structured output. 무료 등급 일일 한도가 3.x Flash 20회, 3.1 Flash-Lite 500회라서 Flash-Lite 를 쓴다 (2026-10)
 - **System Instructions**: 질병관리청 보건 가이드라인 강제 (PM2.5/PM10 임계치 초과 시 야외 추천 차단), CAI/WBGT 등급 해석 기준 포함
-- **프롬프트 구성**: 기상 데이터 + 장소 데이터를 단일 JSON으로 병합하여 1회 호출 (다중 객체 병렬 집계)
+- **프롬프트 구성**: 기상·대기질·예보·장소·축제 데이터를 서버가 병렬로 모아 단일 JSON으로 병합하여 1회 호출. 질문이 다른 지역이면 응답의 `needsLocation` 으로 지역명을 받아 카카오 좌표로 다시 모은 뒤 1회 더 호출 (2026-10 도구 호출 방식에서 되돌림)
 - **환각 방지**: "반드시 제공된 JSON 데이터 배열 내의 장소만 추천" 강제
 - **시맨틱 프롬프트 캐시**: Redis 기반, `ai:{위도}:{경도}:{날짜}_{30분슬롯}` 키, 30분 TTL
 - **규칙 기반 폴백**: Gemini 호출 실패/한도 소진 시 score + places 데이터 기반 정적 추천 생성

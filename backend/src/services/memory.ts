@@ -24,7 +24,7 @@ export async function extractMemories(
 	existingFacts: string[],
 ): Promise<void> {
 	const res = await ai.models.generateContent({
-		model: "gemini-3-flash-preview",
+		model: env.GEMINI_MODEL,
 		contents: `기존 사실: ${JSON.stringify(existingFacts)}\n\n사용자: ${userMessage}\nAI: ${aiResponse}`,
 		config: {
 			systemInstruction: EXTRACT_INSTRUCTION,

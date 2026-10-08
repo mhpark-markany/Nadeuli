@@ -13,6 +13,7 @@ const requiredKeys = [
 type EnvKey = (typeof requiredKeys)[number];
 
 interface Env extends Record<EnvKey, string> {
+	GEMINI_MODEL: string;
 	REDIS_URL: string;
 	PORT: number;
 	CORS_ORIGINS: string[];
@@ -32,6 +33,8 @@ function loadEnv(): Env {
 		KMA_APIHUB_AUTH_KEY: process.env.KMA_APIHUB_AUTH_KEY ?? "",
 		TOUR_API_KEY: process.env.TOUR_API_KEY ?? "",
 		GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
+		// 무료 등급 일일 한도: 3.x Flash 20회, 3.1 Flash-Lite 500회 (2026-10 측정·보고 기준). 한도가 바뀌면 환경 변수로 바꾼다.
+		GEMINI_MODEL: process.env.GEMINI_MODEL || "gemini-3.1-flash-lite",
 		KAKAO_REST_API_KEY: process.env.KAKAO_REST_API_KEY ?? "",
 		KAKAO_CLIENT_SECRET: process.env.KAKAO_CLIENT_SECRET ?? "",
 		JWT_SECRET: process.env.JWT_SECRET ?? "",
