@@ -348,6 +348,16 @@ const MAX_RETRIES = 3;
 // thinking 토큰도 maxOutputTokens 에 포함되므로 2048 이면 JSON 이 중간에 잘린다.
 const MAX_OUTPUT_TOKENS = 8192;
 
+// 이보다 오래 기다리라는 429(예: 무료 등급 일일 한도 소진)는 재시도하지 않고 바로 폴백으로 넘긴다.
+const MAX_RETRY_WAIT_SEC = 20;
+
+/** 429 응답에서 재시도까지 기다릴 초를 읽는다. 초 단위로만 적힌 값만 인정한다. */
+export function parseRetryDelaySec(message: string): number | undefined {
+	const match =
+		message.match(/"retryDelay"\s*:\s*"([\d.]+)s"/) ?? message.match(/retry in ([\d.]+)s\b/i);
+	return match ? Number(match[1]) : undefined;
+}
+
 /** 429(요청 한도)와 503(일시적 과부하)만 다시 시도한다. */
 async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
 	for (let attempt = 0; ; attempt++) {
@@ -356,8 +366,12 @@ async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
 		} catch (e) {
 			if (attempt >= MAX_RETRIES || !(e instanceof Error)) throw e;
 			if (e.message.includes("429")) {
-				const match = e.message.match(/retry in ([\d.]+)s/i);
-				const delay = match ? Math.ceil(Number(match[1])) * 1000 + 2000 : 60_000;
+				const waitSec = parseRetryDelaySec(e.message);
+				if (waitSec === undefined || waitSec > MAX_RETRY_WAIT_SEC) {
+					console.log(`[Gemini] 429 — 재시도 대기 ${waitSec ?? "알 수 없음"}초라서 포기`);
+					throw e;
+				}
+				const delay = Math.ceil(waitSec) * 1000 + 1000;
 				console.log(
 					`[Gemini] 429 rate limit — ${Math.round(delay / 1000)}초 후 재시도 (${attempt + 1}/${MAX_RETRIES})`,
 				);
