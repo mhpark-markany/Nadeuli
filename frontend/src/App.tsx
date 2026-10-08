@@ -2,7 +2,8 @@ import { MapPin, MapPinOff } from "lucide-react";
 import { useMemo } from "react";
 import GlassSurface from "../shared/components/GlassSurface";
 import RotatingText from "../shared/components/RotatingText";
-import { AirQualityCard } from "./components/AirQualityCard";
+import { AirQualityCard, AirQualityCardPending } from "./components/AirQualityCard";
+import { CardStatus } from "./components/CardStatus";
 import { ChatPanel } from "./components/ChatPanel";
 import { FestivalSection } from "./components/FestivalSection";
 import { HourlyTimeline } from "./components/HourlyTimeline";
@@ -14,9 +15,11 @@ import { WeatherLoader } from "./components/WeatherLoader";
 import { WeatherParticleBackground } from "./components/WeatherParticleBackground";
 import { WeeklyForecast } from "./components/WeeklyForecast";
 import { useAddress } from "./hooks/use-address";
+import { useAirQuality } from "./hooks/use-air-quality";
 import { useDashboard } from "./hooks/use-dashboard";
 import { useFestivals } from "./hooks/use-festivals";
 import { usePlaces } from "./hooks/use-places";
+import { useScore } from "./hooks/use-score";
 import { useAuth } from "./hooks/useAuth";
 import { useGeolocation } from "./hooks/useGeolocation";
 import { useTheme } from "./hooks/useTheme";
@@ -47,7 +50,10 @@ export function App() {
 	const geo = useGeolocation();
 	const { theme, resolvedTheme, setTheme } = useTheme();
 	const { user } = useAuth();
+	// 날씨가 오면 화면을 띄우고, 에어코리아에 묶인 대기질·점수는 각자 채운다.
 	const dashboard = useDashboard(geo.lat, geo.lng);
+	const air = useAirQuality(geo.lat, geo.lng);
+	const score = useScore(geo.lat, geo.lng);
 	const places = usePlaces(geo.lat, geo.lng);
 	const festivals = useFestivals(geo.lat, geo.lng);
 	const addressQuery = useAddress(geo.lat, geo.lng);
@@ -61,10 +67,7 @@ export function App() {
 	const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
 	const todayForecast = data?.weeklyForecast?.find((f) => f.date === todayStr);
 
-	const titles = useMemo(
-		() => selectTitles(data?.weather, data?.airQuality),
-		[data?.weather, data?.airQuality],
-	);
+	const titles = useMemo(() => selectTitles(data?.weather, air.data), [data?.weather, air.data]);
 
 	return (
 		<div className={`mx-auto max-w-lg px-4 py-6${data && !loading ? " glass-theme" : ""}`}>
@@ -173,7 +176,16 @@ export function App() {
 									<span>체감 {data.weather.feelsLike}°</span>
 								</p>
 							)}
-							<ScoreRing score={data.score} precipitationType={data.weather.precipitationType} />
+							{score.data ? (
+								<ScoreRing score={score.data} precipitationType={data.weather.precipitationType} />
+							) : (
+								<CardStatus
+									failed={score.isError && !score.isFetching}
+									message="대기질 정보가 늦어 점수를 계산하지 못했어요"
+									onRetry={() => score.refetch()}
+									className="h-36"
+								/>
+							)}
 						</div>
 					</GlassSurface>
 
@@ -184,12 +196,25 @@ export function App() {
 
 					{/* 대기질 + 날씨 */}
 					<div className="grid grid-cols-2 gap-4">
-						<AirQualityCard data={data.airQuality} />
+						{air.data ? (
+							<AirQualityCard data={air.data} />
+						) : (
+							<AirQualityCardPending
+								failed={air.isError && !air.isFetching}
+								onRetry={() => air.refetch()}
+							/>
+						)}
 						<WeatherCard data={data.weather} lat={geo.lat ?? 0} lng={geo.lng ?? 0} />
 					</div>
 
 					{/* 시간대별 전망 */}
-					<HourlyTimeline hours={data.score.hourlyForecast} lat={geo.lat ?? 0} lng={geo.lng ?? 0} />
+					{score.data && (
+						<HourlyTimeline
+							hours={score.data.hourlyForecast}
+							lat={geo.lat ?? 0}
+							lng={geo.lng ?? 0}
+						/>
+					)}
 
 					{/* 7일간 전망 */}
 					<WeeklyForecast days={data.weeklyForecast ?? []} />

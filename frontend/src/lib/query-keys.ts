@@ -4,6 +4,9 @@ function roundCoord(v: number): number {
 
 export const queryKeys = {
 	dashboard: (lat: number, lng: number) => ["dashboard", roundCoord(lat), roundCoord(lng)] as const,
+	airQuality: (lat: number, lng: number) =>
+		["airQuality", roundCoord(lat), roundCoord(lng)] as const,
+	score: (lat: number, lng: number) => ["score", roundCoord(lat), roundCoord(lng)] as const,
 	places: (lat: number, lng: number) => ["places", roundCoord(lat), roundCoord(lng)] as const,
 	festivals: (lat: number, lng: number) => ["festivals", roundCoord(lat), roundCoord(lng)] as const,
 	address: (lat: number, lng: number) => ["address", roundCoord(lat), roundCoord(lng)] as const,

@@ -1,5 +1,6 @@
 import type { AirGrade, AirQuality, CaiGrade } from "shared";
 import { buildDataGoKrUrl, fetchJsonSafe } from "../lib/api-url.js";
+import { cacheGet, cacheSet } from "../lib/cache.js";
 import { env } from "../lib/env.js";
 
 const BASE_URL = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc";
@@ -51,7 +52,7 @@ export function findNearestStation(lat: number, lng: number): string {
 // ── 실시간 대기질 조회 ──
 
 interface AirApiItem {
-	stationName: string;
+	stationName?: string;
 	pm25Value: string;
 	pm25Grade: string;
 	pm10Value: string;
@@ -66,9 +67,30 @@ interface AirApiResponse {
 }
 
 // data.go.kr 게이트웨이는 장애 때 30초를 기다린 뒤 504 를 준다. 화면과 AI 답변이 같이 묶이지 않게 일찍 끊는다.
-const AIRKOREA_TIMEOUT_MS = 8000;
+// 정상 응답은 0.1~0.4초라서 4초면 충분하다.
+const AIRKOREA_TIMEOUT_MS = 4000;
+// 에어코리아 값은 1시간마다 갱신된다. 조회가 실패하면 이 시간 안에 받은 마지막 값을 대신 쓴다.
+const LAST_GOOD_TTL_SEC = 6 * 3600;
 
+/** 실패하면 측정소의 마지막 정상값으로 대신한다. 값의 측정 시각(dataTime)은 그대로라서 화면에서 언제 값인지 보인다. */
 export async function fetchAirQuality(stationName: string): Promise<AirQuality> {
+	const key = `air-last:${stationName}`;
+	try {
+		const data = await fetchAirQualityLive(stationName);
+		await cacheSet(key, data, LAST_GOOD_TTL_SEC);
+		return data;
+	} catch (e) {
+		const last = await cacheGet<AirQuality>(key);
+		if (!last) throw e;
+		console.warn(
+			`[AirKorea] ${stationName} 조회 실패, ${last.dataTime} 측정값으로 대신함:`,
+			e instanceof Error ? e.message : e,
+		);
+		return last;
+	}
+}
+
+async function fetchAirQualityLive(stationName: string): Promise<AirQuality> {
 	const url = buildDataGoKrUrl(`${BASE_URL}/getMsrstnAcctoRltmMesureDnsty`, env.AIRKOREA_API_KEY, {
 		returnType: "json",
 		stationName,
@@ -95,7 +117,7 @@ export async function fetchAirQuality(stationName: string): Promise<AirQuality> 
 	const cai = calculateCAI(pm25, pm10, o3);
 
 	return {
-		stationName: item.stationName,
+		stationName: item.stationName ?? stationName,
 		pm25Value: pm25,
 		pm25Grade: toGrade(item.pm25Grade),
 		pm10Value: pm10,

@@ -1,6 +1,30 @@
 import { Wind } from "lucide-react";
 import type { AirQuality } from "shared";
 import { caiColor, o3Color, pm10Color, pm25Color } from "../lib/colors";
+import { CardStatus } from "./CardStatus";
+
+export function AirQualityCardPending({
+	failed,
+	onRetry,
+}: {
+	failed: boolean;
+	onRetry: () => void;
+}) {
+	return (
+		<div className="glass-card rounded-2xl p-4">
+			<h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
+				<Wind className="h-4 w-4" />
+				대기질(CAI)
+			</h3>
+			<CardStatus
+				failed={failed}
+				message="대기질 정보를 받지 못했어요"
+				onRetry={onRetry}
+				className="h-28"
+			/>
+		</div>
+	);
+}
 
 export function AirQualityCard({ data }: { data: AirQuality }) {
 	const color = caiColor(data.cai);

@@ -1,4 +1,5 @@
 import type {
+	AirQuality,
 	ApiResponse,
 	AskResponse,
 	DailyForecast,
@@ -20,16 +21,25 @@ async function fetchJson<T>(url: string): Promise<T> {
 	return json.data;
 }
 
-export async function fetchDashboard(lat: number, lng: number): Promise<DashboardData> {
+/** 화면 뼈대에 필요한 날씨만 기다린다. 대기질·점수는 에어코리아 장애 때 늦어지므로 따로 부른다. */
+export async function fetchDashboard(
+	lat: number,
+	lng: number,
+): Promise<Pick<DashboardData, "weather" | "weeklyForecast">> {
 	const qs = `lat=${lat}&lng=${lng}`;
-	const [airQuality, weather, lifeIndex, score, weeklyForecast] = await Promise.all([
-		fetchJson<DashboardData["airQuality"]>(`${BASE}/air-quality?${qs}`),
+	const [weather, weeklyForecast] = await Promise.all([
 		fetchJson<DashboardData["weather"]>(`${BASE}/weather?${qs}`),
-		fetchJson<DashboardData["lifeIndex"]>(`${BASE}/life-index?${qs}`),
-		fetchJson<OutdoorScore>(`${BASE}/score?${qs}`),
 		fetchJson<DailyForecast[]>(`${BASE}/weather/weekly?${qs}`).catch(() => []),
 	]);
-	return { airQuality, weather, lifeIndex, score, weeklyForecast };
+	return { weather, weeklyForecast };
+}
+
+export async function fetchAirQuality(lat: number, lng: number): Promise<AirQuality> {
+	return fetchJson<AirQuality>(`${BASE}/air-quality?lat=${lat}&lng=${lng}`);
+}
+
+export async function fetchScore(lat: number, lng: number): Promise<OutdoorScore> {
+	return fetchJson<OutdoorScore>(`${BASE}/score?lat=${lat}&lng=${lng}`);
 }
 
 export async function fetchPlaces(
